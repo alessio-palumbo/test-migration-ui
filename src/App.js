@@ -4,6 +4,7 @@ import './bootstrap-4.0.0-beta.2-dist/css/bootstrap.css'
 import { Input } from './components/Input'
 import { Apis } from './components/Apis'
 import { Method } from './components/Method'
+import { Footer } from './components/Footer'
 import { sendReq } from './components/Request'
 
 const stages = {
@@ -33,11 +34,22 @@ class App extends Component {
     v3Res: ""
   }
 
+  componentDidMount() {
+    const url = window.location.href
+    const params = url.slice(url.indexOf("?") + 1).split("&")
+    const endpoint = params[0].slice(params[0].indexOf("=") + 1)
+    const token = params[1].slice(params[1].indexOf("=") + 1)
+    this.setState({
+      endpoint: endpoint,
+      token: token
+    })
+  }
+
   // Update text in input boxes
   onChangeInputField = (event) => {
     const input = event.target.name
     const text = event.target.value
-    this.setState(prevState => {
+    this.setState(() => {
       if (input === "endpoint") {
         return {
           endpoint: text
@@ -188,6 +200,7 @@ class App extends Component {
           v2Res={v2Res}
           v3Res={v3Res}
         />
+        <Footer />
       </div>
     );
   }
