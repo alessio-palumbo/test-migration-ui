@@ -1,0 +1,58 @@
+.App {
+  text-align: center;
+}
+
+.jumbotron {
+  background-color: #00bbc3 !important;
+  border-radius: 0 !important;
+  padding: 10px !important;
+}
+
+.title {
+  color: white;
+}
+
+/* Dropdown */
+.dropB {
+  background-color: #6b787e !important;
+  color: #c4dce7 !important;
+}
+
+/* input */
+.input-box {
+  border: 1px solid #007787 !important;
+  width: 500px !important;
+}
+
+/* apis */
+.api {
+  width: 45%;
+  overflow: hidden;
+}
+
+.btn-custom-4 {
+  background: #f3f4f8 !important;
+}
+
+.btn-custom-3 {
+  background: #647076 !important;
+  color: #c4dce7;
+}
+
+.btn-custom-2 {
+  background: #007787 !important;
+  margin-left: 15px;
+}
+
+.btn-custom {
+  background: #00bbc3;
+  color: white !important;
+  width: 140px !important;
+  margin: 5px;
+}
+
+.copied {
+  top: 1px;
+  left: 5px;
+}
+
