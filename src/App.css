@@ -22,7 +22,7 @@
 /* input */
 .input-box {
   border: 1px solid #007787 !important;
-  width: 500px !important;
+  min-width: 300px !important;
 }
 
 /* apis */
@@ -68,6 +68,16 @@
 
 /* Footer */
 .footer {
-  height: 50px;
+  height: 100%;
   background: #6b787e;
+}
+
+@media screen and (max-width: 348px) {
+
+}
+
+@media screen and (min-width: 786px) {
+  .input-box {
+    width: 500px !important;
+  }
 }

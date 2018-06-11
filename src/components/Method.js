@@ -9,7 +9,7 @@ export function Method({ onChangeValue }) {
           <option value="PG">PG</option>
         </select>
       </label>
-      <label className="text-white ml-5" htmlFor="method">Method: <br />
+      <label className="text-white ml-4" htmlFor="method">Method: <br />
         <select className="btn dropB form-control" id="method" onChange={onChangeValue}>
           <option value="GET">GET</option>
           <option value="POST">POST</option>
