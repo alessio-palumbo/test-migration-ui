@@ -4,6 +4,7 @@ import './bootstrap-4.0.0-beta.2-dist/css/bootstrap.css'
 import { Input } from './components/Input'
 import { Apis } from './components/Apis'
 import { Method } from './components/Method'
+import { Diff } from './components/Diff'
 import { Footer } from './components/Footer'
 import { sendReq } from './components/Request'
 
@@ -31,7 +32,10 @@ class App extends Component {
     method: "GET",
     stage: "Alessio",
     v2Res: "",
-    v3Res: ""
+    v3Res: "",
+    v2ResStatus: "",
+    v3ResStatus: "",
+    show: false
   }
 
   componentDidMount() {
@@ -118,11 +122,25 @@ class App extends Component {
         .then(result => {
           this.setState({ v2Res: JSON.stringify(result) })
         })
+        .catch(error => {
+          this.setState({
+            v2Res: error,
+            v2ResStatus: error.response.status,
+            v2JsonCopied: error.response.status
+          })
+        })
     } else {
       const url = v3Url + endpoint
       sendReq({ url, token })
         .then(result => {
           this.setState({ v3Res: JSON.stringify(result) })
+        })
+        .catch(error => {
+          this.setState({
+            v3Res: error,
+            v3ResStatus: error.response.status,
+            v3JsonCopied: error.response.status
+          })
         })
     }
   }
@@ -157,13 +175,34 @@ class App extends Component {
     }
   }
 
+  onShowDiffs = () => {
+    console.log(this.state.show)
+    this.setState({ show: !this.state.show })
+    console.log(this.state.show)
+  }
+
   render() {
-    const { method, v2Url, v3Url, endpoint, token, v2Copied, v3Copied, v2JsonCopied, v3JsonCopied, v2Res, v3Res } = this.state
+    const {
+      method,
+      v2Url,
+      v3Url,
+      endpoint,
+      token,
+      v2Copied,
+      v3Copied,
+      v2JsonCopied,
+      v3JsonCopied,
+      v2Res,
+      v3Res,
+      v2ResStatus,
+      v3ResStatus,
+      show
+    } = this.state
 
     return (
       <div className="App" >
         <div className="jumbotron">
-          <h1 className="title">OSS Endpoint Testing</h1>
+          <h1 className="title">Migration Testing</h1>
           <br />
           <Method
             onChangeValue={this.onChangeValue}
@@ -184,7 +223,6 @@ class App extends Component {
             onClearField={this.onClearInput}
           />
         </div>
-        <br />
         <Apis
           method={method}
           v2Url={v2Url + endpoint}
@@ -200,6 +238,17 @@ class App extends Component {
           v2Res={v2Res}
           v3Res={v3Res}
         />
+        <br />
+        {
+          (v2Res !== "" && v2ResStatus === "") && (v3Res !== "" && v3ResStatus === "")
+          &&
+          <Diff
+            showDiffs={this.onShowDiffs}
+            show={show}
+            v2Res={v2Res}
+            v3Res={v3Res}
+          />
+        }
         <Footer />
       </div>
     );

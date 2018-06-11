@@ -10,7 +10,4 @@ export function sendReq({ url, token }) {
     .then(response => {
       return response.data
     })
-    .catch(error => {
-      console.log(error);
-    });
 }
