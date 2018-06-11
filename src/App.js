@@ -41,6 +41,9 @@ class App extends Component {
   componentDidMount() {
     const url = window.location.href
     const params = url.slice(url.indexOf("?") + 1).split("&")
+    if (params[0] === url) {
+      return
+    }
     const endpoint = params[0].slice(params[0].indexOf("=") + 1)
     const token = params[1].slice(params[1].indexOf("=") + 1)
     this.setState({
