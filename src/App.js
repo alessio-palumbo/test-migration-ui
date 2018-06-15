@@ -39,6 +39,7 @@ class App extends Component {
   }
 
   componentDidMount() {
+    // Check if query params can be parsed (for request coming from slack)
     const uri = window.location.href
     const url = uri.slice(uri.indexOf("?") + 1)
     if (url === uri) {
@@ -52,10 +53,10 @@ class App extends Component {
     })
   }
 
-  // Update text in input boxes
+  // Update text in input fields
   onChangeInputField = (event) => {
     const input = event.target.name
-    const text = event.target.value
+    const text = event.target.value.trim()
     this.setState(() => {
       if (input === "endpoint") {
         return {
@@ -69,7 +70,7 @@ class App extends Component {
     })
   }
 
-  // Clear data when click in the inputs boxes
+  // Clear data when click in the inputs fields
   onClearInput = (event) => {
     const input = event.target
     this.setState({
@@ -93,6 +94,7 @@ class App extends Component {
     })
   }
 
+  // Copy JSON to clipboard
   copyToClipboard = (text) => {
     const textField = document.createElement('textarea')
     textField.innerText = text
@@ -102,6 +104,7 @@ class App extends Component {
     textField.remove()
   }
 
+  // Copy Curl to clipboard
   onCurlCopy = (itemId) => {
     this.setState({
       v2Copied: "Copy",
@@ -156,10 +159,10 @@ class App extends Component {
     })
     if (res === "v2") {
       this.copyToClipboard(v2Res)
-      this.setState({ v2JsonCopied: "Copied" })
+      this.setState({ v2JsonCopied: "Copied!" })
     } else {
       this.copyToClipboard(v3Res)
-      this.setState({ v3JsonCopied: "Copied" })
+      this.setState({ v3JsonCopied: "Copied!" })
     }
   }
 
@@ -179,9 +182,38 @@ class App extends Component {
   }
 
   onShowDiffs = () => {
-    console.log(this.state.show)
     this.setState({ show: !this.state.show })
-    console.log(this.state.show)
+  }
+
+  onCompare = () => {
+    const { btnCompText } = this.state
+    if (btnCompText === "Compare") {
+      this.compareJSON()
+      this.setState({
+        compared: true,
+        btnCompText: "Clear"
+      })
+    } else {
+      this.setState({
+        btnCompText: "Compare",
+        compared: false
+      })
+
+    }
+  }
+
+  compareJSON = () => {
+    const { v2Res, v3Res, v2Config, v3Config } = this.state
+    this.setState({
+      outLeft: v2Res,
+      outRight: v3Res
+    })
+
+    jdd.diffVal(v2Res, v2Config, v3Res, v3Config);
+    console.log(jdd.diffs)
+    this.setState({
+      diffVals: jdd.diffs
+    })
   }
 
   render() {
@@ -199,7 +231,11 @@ class App extends Component {
       v3Res,
       v2ResStatus,
       v3ResStatus,
-      show
+      show,
+      btnCompText,
+      compared,
+      outLeft,
+      outRight
     } = this.state
 
     return (
@@ -250,6 +286,11 @@ class App extends Component {
             show={show}
             v2Res={v2Res}
             v3Res={v3Res}
+            outLeft={outLeft}
+            outRight={outRight}
+            onCompare={this.onCompare}
+            btnCompText={btnCompText}
+            compared={compared}
           />
         }
         <Footer />

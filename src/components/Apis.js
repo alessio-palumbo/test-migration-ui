@@ -24,7 +24,7 @@ export function Apis({
         {
           v2Res === "" ?
             <button onClick={() => onCopyRes("v2")} className="btn btn-sm btn-custom btn-custom-4">JSON</button>
-            : <button onClick={() => onCopyRes("v2")} className={`btn btn-sm btn-custom ${(btnJsonV2 === "JSON" || btnJsonV2 === "Copied") ? "btn-custom-3" : "btn-danger"}`}>{btnJsonV2}</button>
+            : <button onClick={() => onCopyRes("v2")} className={`btn btn-sm btn-custom ${(btnJsonV2 === "JSON" || btnJsonV2 === "Copied!") ? "btn-custom-3" : "btn-danger"}`}>{btnJsonV2}</button>
 
         }
       </div>
@@ -36,7 +36,7 @@ export function Apis({
         {
           v3Res === "" ?
             <button onClick={() => onCopyRes("v3")} className="btn btn-sm btn-custom btn-custom-4">JSON</button>
-            : <button onClick={() => onCopyRes("v3")} className={`btn btn-sm btn-custom ${(btnJsonV3 === "JSON" || btnJsonV2 === "Copied") ? "btn-custom-3" : "btn-danger"}`}>{btnJsonV3}</button>
+            : <button onClick={() => onCopyRes("v3")} className={`btn btn-sm btn-custom ${(btnJsonV3 === "JSON" || btnJsonV3 === "Copied!") ? "btn-custom-3" : "btn-danger"}`}>{btnJsonV3}</button>
 
         }
       </div>
