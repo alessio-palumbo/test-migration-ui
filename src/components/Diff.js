@@ -1,5 +1,6 @@
 import React from 'react'
 import { CodeBlock } from './CodeBlock'
+import { Gutter } from './Gutter'
 
 export function Diff({
   showDiffs,
@@ -7,11 +8,14 @@ export function Diff({
   v3Res,
   show,
   onCompare,
-  btnCompText,
   compared,
-  outLeft,
-  outRight,
-  report
+  report,
+  onUpdateRes,
+  leftErr,
+  rightErr,
+  idxErrLeft,
+  idxErrRight,
+  diffLines
 }) {
   return (
     <div className="diff">
@@ -23,32 +27,33 @@ export function Diff({
             compared ?
               (
                 <div id="diffcontainer">
-                  <button className={`btn btn-sm btn-custom ${btnCompText === "Clear" && "btn-comp-2"}`} id="compare" onClick={onCompare}>{btnCompText}</button>
-                  <div id="report">{report}</div>
-                  <ul id="toolbar" className="toolbar"></ul>
-                  <div className="d-flex p-2 justify-content-around">
+                  <button className="btn btn-sm btn-custom btn-comp-2" id="compare" onClick={onCompare}>Clear</button>
+                  <div id="report" className={`p-1 ${diffLines.length ? "text-danger" : "text-success"}`}>{report}</div>
+                  {/* <ul id="toolbar" className="toolbar"></ul> */}
+                  <div className="d-flex justify-content-around">
                     <pre id="out" className="d-flex text-left codeBlock left">
-                      <CodeBlock res={outLeft} />
+                      <CodeBlock res={v2Res} style={`diffGutter`} diffLines={diffLines} />
                     </pre>
                     <pre id="out2" className="d-flex text-left codeBlock right">
-                      <CodeBlock res={outRight} />
+                      <CodeBlock res={v3Res} style={`diffGutter`} diffLines={diffLines} />
                     </pre>
                   </div>
                 </div>
               ) : (
                 <div spellCheck="false" id="initContainer">
-                  <div className="center p-1">
-                    <button className={`btn btn-sm btn-custom ${btnCompText === "Clear" && "btn-comp-2"}`} id="compare" onClick={onCompare}>{btnCompText}</button>
-                    <div className="throbber-loader"></div>
+                  <div className="d-flex justify-content-around">
+                    <pre id="errorLeft" className="error col text-danger">{leftErr}</pre>
+                    <button className="btn btn-sm btn-custom" id="compare" onClick={onCompare}>Compare</button>
+                    <pre id="errorRight mt-1" className="error col text-danger">{rightErr}</pre>
                   </div>
-                  <div className="d-flex p-2 justify-content-around">
-                    <div className="form-group taCont left">
-                      <textarea spellCheck="false" className="form-control input-sm" id="textarealeft" placeholder="Enter JSON to compare" defaultValue={v2Res}></textarea>
-                      <pre id="errorLeft" className="error"></pre>
+                  <div className="taFCont d-flex justify-content-around">
+                    <div className="taCont left d-flex justify-content-around form-group">
+                      <Gutter style={`ta-Gutter`} res={v2Res} idxErr={idxErrLeft} />
+                      <textarea spellCheck="false" className="form-control left" onChange={onUpdateRes} id="textarealeft" placeholder="Enter JSON to compare" defaultValue={v2Res}></textarea>
                     </div>
-                    <div className="form-group taCont right">
-                      <textarea spellCheck="false" className="form-control right" id="textarearight" placeholder="Enter JSON to compare" defaultValue={v3Res}></textarea>
-                      <pre id="errorRight" className="error"></pre>
+                    <div className="taCont right d-flex justify-content-around form-group">
+                      <Gutter style={`ta-Gutter`} res={v3Res} idxErr={idxErrRight} />
+                      <textarea spellCheck="false" className="form-control right" onChange={onUpdateRes} id="textarearight" placeholder="Enter JSON to compare" defaultValue={v3Res}></textarea>
                     </div>
                   </div>
                 </div>
