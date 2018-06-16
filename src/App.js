@@ -7,6 +7,8 @@ import { Method } from './components/Method'
 import { Diff } from './components/Diff'
 import { Footer } from './components/Footer'
 import { sendReq } from './components/Request'
+import jdd from './libs/jdd'
+import jsonlint from 'jsonlint-mod'
 
 const stages = {
   Alessio: [
@@ -23,8 +25,8 @@ class App extends Component {
   state = {
     v2Url: process.env.REACT_APP_V2_ALESSIO,
     v3Url: process.env.REACT_APP_V3_ALESSIO,
-    endpoint: "",
-    token: "",
+    endpoint: "/schedule/f0058a00-5ced-4d11-ad64-bc6b9c091595/popular?user_id=211f2f08-fbab-46a6-a36a-c92c648673af",
+    token: "8PNaZU0PIOt1b1cRfkPAvd85B0I9G01KkTof7Gy1",
     v2Copied: "Copy Curl",
     v3Copied: "Copy Curl",
     v2JsonCopied: "JSON",
@@ -35,7 +37,17 @@ class App extends Component {
     v3Res: "",
     v2ResStatus: "",
     v3ResStatus: "",
-    show: false
+    show: false,
+    compared: false,
+    v2Config: null,
+    v3Config: null,
+    parseError: {
+      msg: "",
+      line: "",
+      side: ""
+    },
+    diffLines: "",
+    report: ""
   }
 
   componentDidMount() {
@@ -104,7 +116,7 @@ class App extends Component {
     textField.remove()
   }
 
-  // Copy Curl to clipboard
+  // Copy to clipboard
   onCurlCopy = (itemId) => {
     this.setState({
       v2Copied: "Copy",
@@ -120,15 +132,25 @@ class App extends Component {
     }
   }
 
+  // Send http request to api
   onSendReq = (req) => {
     const { v2Url, v3Url, endpoint, token } = this.state
     if (req === "v2") {
       const url = v2Url + endpoint
       sendReq({ url, token })
         .then(result => {
-          this.setState({ v2Res: JSON.stringify(result) })
+          // create config for v2 result
+          const v2Config = jdd.createConfig();
+          jdd.formatAndDecorate(v2Config, result);
+          this.setState({
+            v2Res: v2Config.out,
+          })
         })
         .catch(error => {
+          if (error.response === undefined) {
+            console.log(error.request)
+            return
+          }
           this.setState({
             v2Res: error,
             v2ResStatus: error.response.status,
@@ -139,9 +161,18 @@ class App extends Component {
       const url = v3Url + endpoint
       sendReq({ url, token })
         .then(result => {
-          this.setState({ v3Res: JSON.stringify(result) })
+          // create config for v3 result
+          const v3Config = jdd.createConfig();
+          jdd.formatAndDecorate(v3Config, result);
+          this.setState({
+            v3Res: v3Config.out,
+          })
         })
         .catch(error => {
+          if (error.response === undefined) {
+            console.log(error.request)
+            return
+          }
           this.setState({
             v3Res: error,
             v3ResStatus: error.response.status,
@@ -151,6 +182,7 @@ class App extends Component {
     }
   }
 
+  // Copy JSON response to clipboard
   onCopyRes = (res) => {
     const { v2Res, v3Res } = this.state
     this.setState({
@@ -166,6 +198,7 @@ class App extends Component {
     }
   }
 
+  // Change value of method and stage
   onChangeValue = (event) => {
     const id = event.target.id
     const input = event.target.value
@@ -181,38 +214,104 @@ class App extends Component {
     }
   }
 
+  // Update res in textarea
+  onUpdateRes = (event) => {
+    const ta = event.target.id
+    const input = event.target.value
+    if (ta === "textarealeft") {
+      this.setState({
+        v2Res: input
+      })
+      this.validateJSON(input, "left")
+    } else {
+      this.setState({
+        v3Res: input
+      })
+      this.validateJSON(input, "right")
+
+    }
+  }
+
+  // Show/Hide comparison
   onShowDiffs = () => {
     this.setState({ show: !this.state.show })
   }
 
+  // Call compareJSON and change compare button layout
   onCompare = () => {
-    const { btnCompText } = this.state
-    if (btnCompText === "Compare") {
-      this.compareJSON()
+    const { compared } = this.state
+    if (compared === false) {
+      if (this.compareJSON() === "invalid") {
+        return
+      }
       this.setState({
         compared: true,
-        btnCompText: "Clear"
       })
     } else {
       this.setState({
-        btnCompText: "Compare",
         compared: false
       })
 
     }
   }
 
-  compareJSON = () => {
-    const { v2Res, v3Res, v2Config, v3Config } = this.state
-    this.setState({
-      outLeft: v2Res,
-      outRight: v3Res
-    })
+  // Validate the JSON input
+  validateJSON = (input, side) => {
+    try {
+      let parsedInput = jsonlint.parse(input)
+      // if no parsing errors reset parsing errors
+      this.setState({ parseError: {} })
+      return parsedInput
+    } catch (e) {
+      let msg = e.message
+      msg = msg.substring(0, msg.indexOf(":"))
+      if (msg.indexOf("Parse error") !== -1) {
+        let line = msg.substring((msg.indexOf("line") + 5))
+        this.setState({
+          parseError: {
+            msg: msg,
+            line: line,
+            side: side
+          }
+        })
+      }
+      return false
+    }
+  }
 
-    jdd.diffVal(v2Res, v2Config, v3Res, v3Config);
-    console.log(jdd.diffs)
+  // CompareJSON logic
+  compareJSON = () => {
+    const { v2Res, v3Res } = this.state
+    // create config
+    let v2Raw, v3Raw
+    v2Raw = this.validateJSON(v2Res, "left")
+    v3Raw = this.validateJSON(v3Res, "right")
+    if (v2Raw === false || v3Raw === false) {
+      return "invalid"
+    }
+
+    const v2Config = jdd.createConfig();
+    jdd.formatAndDecorate(v2Config, v2Raw); // TODO: add catch for bad JSON
+    const v3Config = jdd.createConfig();
+    jdd.formatAndDecorate(v3Config, v3Raw); // TODO: add catch for bad JSON
+
+    // Find differences values and store them in jdd.diffs
+    jdd.diffs = []
+    jdd.diffVal(v2Raw, v2Config, v3Raw, v3Config);
+
+    // Store the error lines
+    const diffLines = []
+    jdd.diffs.map(diff => diffLines.push(diff.path1.line))
+    const diffNum = diffLines.length
+    let report;
+    if (diffNum === 0) {
+      report = "Yey! No differences found!"
+    } else {
+      report = `Found ${diffNum} ${diffNum > 1 ? "differences" : "difference"}.`
+    }
     this.setState({
-      diffVals: jdd.diffs
+      diffLines: diffLines,
+      report: report
     })
   }
 
@@ -234,8 +333,9 @@ class App extends Component {
       show,
       btnCompText,
       compared,
-      outLeft,
-      outRight
+      parseError,
+      diffLines,
+      report
     } = this.state
 
     return (
@@ -286,11 +386,16 @@ class App extends Component {
             show={show}
             v2Res={v2Res}
             v3Res={v3Res}
-            outLeft={outLeft}
-            outRight={outRight}
             onCompare={this.onCompare}
+            onUpdateRes={this.onUpdateRes}
             btnCompText={btnCompText}
             compared={compared}
+            leftErr={parseError.side === "left" && parseError.msg}
+            rightErr={parseError.side === "right" && parseError.msg}
+            idxErrLeft={parseError.side === "left" && parseError.line}
+            idxErrRight={parseError.side === "right" && parseError.line}
+            diffLines={diffLines}
+            report={report}
           />
         }
         <Footer />
