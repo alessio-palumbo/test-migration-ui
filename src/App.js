@@ -25,8 +25,8 @@ class App extends Component {
   state = {
     v2Url: process.env.REACT_APP_V2_ALESSIO,
     v3Url: process.env.REACT_APP_V3_ALESSIO,
-    endpoint: "/schedule/f0058a00-5ced-4d11-ad64-bc6b9c091595/popular?user_id=211f2f08-fbab-46a6-a36a-c92c648673af",
-    token: "8PNaZU0PIOt1b1cRfkPAvd85B0I9G01KkTof7Gy1",
+    endpoint: "",
+    token: "",
     v2Copied: "Copy Curl",
     v3Copied: "Copy Curl",
     v2JsonCopied: "JSON",
@@ -63,10 +63,11 @@ class App extends Component {
       endpoint: endpoint,
       token: token
     })
-    this.onSendReq("v2")
-    this.onSendReq("v3")
-    this.onShowDiffs()
-    this.compareJSON()
+    Promise.all([this.onSendReq("v2"), this.onSendReq("v3")])
+      .then(() => {
+        this.onShowDiffs()
+        this.compareJSON()
+      })
   }
 
   // Update text in input fields
