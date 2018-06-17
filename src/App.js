@@ -63,6 +63,10 @@ class App extends Component {
       endpoint: endpoint,
       token: token
     })
+    this.onSendReq("v2")
+    this.onSendReq("v3")
+    this.onShowDiffs()
+    this.compareJSON()
   }
 
   // Update text in input fields
@@ -218,16 +222,17 @@ class App extends Component {
   onUpdateRes = (event) => {
     const ta = event.target.id
     const input = event.target.value
+    console.log(input)
     if (ta === "textarealeft") {
+      this.validateJSON(input, "left")
       this.setState({
         v2Res: input
       })
-      this.validateJSON(input, "left")
     } else {
+      this.validateJSON(input, "right")
       this.setState({
         v3Res: input
       })
-      this.validateJSON(input, "right")
 
     }
   }
@@ -241,16 +246,10 @@ class App extends Component {
   onCompare = () => {
     const { compared } = this.state
     if (compared === false) {
-      if (this.compareJSON() === "invalid") {
-        return
-      }
-      this.setState({
-        compared: true,
-      })
+      if (this.compareJSON() === "invalid") { return }
+      this.setState({ compared: true })
     } else {
-      this.setState({
-        compared: false
-      })
+      this.setState({ compared: false })
 
     }
   }
@@ -378,26 +377,22 @@ class App extends Component {
           v3Res={v3Res}
         />
         <br />
-        {
-          (v2Res !== "" && v2ResStatus === "") && (v3Res !== "" && v3ResStatus === "")
-          &&
-          <Diff
-            showDiffs={this.onShowDiffs}
-            show={show}
-            v2Res={v2Res}
-            v3Res={v3Res}
-            onCompare={this.onCompare}
-            onUpdateRes={this.onUpdateRes}
-            btnCompText={btnCompText}
-            compared={compared}
-            leftErr={parseError.side === "left" && parseError.msg}
-            rightErr={parseError.side === "right" && parseError.msg}
-            idxErrLeft={parseError.side === "left" && parseError.line}
-            idxErrRight={parseError.side === "right" && parseError.line}
-            diffLines={diffLines}
-            report={report}
-          />
-        }
+        <Diff
+          showDiffs={this.onShowDiffs}
+          show={show}
+          v2Res={v2Res}
+          v3Res={v3Res}
+          onCompare={this.onCompare}
+          onUpdateRes={this.onUpdateRes}
+          btnCompText={btnCompText}
+          compared={compared}
+          leftErr={parseError.side === "left" && parseError.msg}
+          rightErr={parseError.side === "right" && parseError.msg}
+          idxErrLeft={parseError.side === "left" && parseError.line}
+          idxErrRight={parseError.side === "right" && parseError.line}
+          diffLines={diffLines}
+          report={report}
+        />
         <Footer />
       </div>
     );

@@ -15,11 +15,11 @@ export function Diff({
   rightErr,
   idxErrLeft,
   idxErrRight,
-  diffLines
+  diffLines,
 }) {
   return (
     <div className="diff">
-      <button className="btn btn-sm diff-btn" onClick={showDiffs}>Show Diffs</button>
+      <button className="btn btn-sm diff-btn btn-outline-secondary" onClick={showDiffs}>Show Diffs</button>
       {
         show === true &&
         <div className="diff-box p-4">
