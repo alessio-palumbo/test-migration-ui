@@ -62,12 +62,14 @@ class App extends Component {
     this.setState({
       endpoint: endpoint,
       token: token
-    })
-    Promise.all([this.onSendReq("v2"), this.onSendReq("v3")])
-      .then(() => {
+    }, async () => {
+      await this.onSendReq("v2")
+      await this.onSendReq("v3")
+      setTimeout(() => {
         this.onShowDiffs()
         this.compareJSON()
-      })
+      }, 3000)
+    })
   }
 
   // Update text in input fields
@@ -123,17 +125,19 @@ class App extends Component {
 
   // Copy to clipboard
   onCurlCopy = (itemId) => {
-    this.setState({
-      v2Copied: "Copy",
-      v3Copied: "Copy"
-    })
     const field = document.getElementById(itemId)
     const text = field.textContent
     this.copyToClipboard(text)
     if (itemId === "v2") {
-      this.setState({ v2Copied: "Copied!" })
+      this.setState({
+        v2Copied: "Copied!",
+        v3Copied: "Copy"
+      })
     } else {
-      this.setState({ v3Copied: "Copied!" })
+      this.setState({
+        v3Copied: "Copied!",
+        v2Copied: "Copy"
+      })
     }
   }
 
@@ -190,16 +194,18 @@ class App extends Component {
   // Copy JSON response to clipboard
   onCopyRes = (res) => {
     const { v2Res, v3Res } = this.state
-    this.setState({
-      v2JsonCopied: "JSON",
-      v3JsonCopied: "JSON"
-    })
     if (res === "v2") {
       this.copyToClipboard(v2Res)
-      this.setState({ v2JsonCopied: "Copied!" })
+      this.setState({
+        v2JsonCopied: "Copied!",
+        v3JsonCopied: "JSON"
+      })
     } else {
       this.copyToClipboard(v3Res)
-      this.setState({ v3JsonCopied: "Copied!" })
+      this.setState({
+        v3JsonCopied: "Copied!",
+        v2JsonCopied: "JSON"
+      })
     }
   }
 
