@@ -1,8 +1,11 @@
 import React from 'react';
 
 export function Gutter({ style, res, idxErr }) {
-  const lines = res.split("\n")
-  lines.pop()
+  let lines = []
+  if (typeof res === "string") {
+    lines = res.split("\n")
+    lines.pop()
+  }
   return (
     <div className={style}>
       {

@@ -288,18 +288,18 @@ class App extends Component {
   // CompareJSON logic
   compareJSON = () => {
     const { v2Res, v3Res } = this.state
-    // create config
+    // validate the json input
     let v2Raw, v3Raw
     v2Raw = this.validateJSON(v2Res, "left")
+    if (v2Raw === false) { return "invalid" }
     v3Raw = this.validateJSON(v3Res, "right")
-    if (v2Raw === false || v3Raw === false) {
-      return "invalid"
-    }
+    if (v3Raw === false) { return "invalid" }
 
+    // create config
     const v2Config = jdd.createConfig();
-    jdd.formatAndDecorate(v2Config, v2Raw); // TODO: add catch for bad JSON
+    jdd.formatAndDecorate(v2Config, v2Raw);
     const v3Config = jdd.createConfig();
-    jdd.formatAndDecorate(v3Config, v3Raw); // TODO: add catch for bad JSON
+    jdd.formatAndDecorate(v3Config, v3Raw);
 
     // Find differences values and store them in jdd.diffs
     jdd.diffs = []
@@ -309,6 +309,8 @@ class App extends Component {
     const diffLines = []
     jdd.diffs.map(diff => diffLines.push(diff.path1.line))
     const diffNum = diffLines.length
+
+    // Write report
     let report;
     if (diffNum === 0) {
       report = "Yey! No differences found!"
@@ -334,8 +336,6 @@ class App extends Component {
       v3JsonCopied,
       v2Res,
       v3Res,
-      v2ResStatus,
-      v3ResStatus,
       show,
       btnCompText,
       compared,
