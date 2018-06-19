@@ -30,7 +30,7 @@ export function Diff({
               (
                 <div id="diffcontainer">
                   <button className="btn btn-sm btn-custom btn-comp-2" id="compare" onClick={onCompare}>Clear</button>
-                  <div id="report" className={`p-1 ${diffLines.length ? "text-danger" : "text-success"}`}>{report}</div>
+                  <div id="report" className={`p-1 ${diffNum > 0 ? "text-danger" : "text-success"}`}>{report}</div>
                   {/* <ul id="toolbar" className="toolbar"></ul> */}
                   <div className="d-flex justify-content-around">
                     <pre id="out" className="d-flex text-left codeBlock left">
