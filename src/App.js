@@ -74,6 +74,24 @@ class App extends Component {
     })
   }
 
+  // Reset buttons text to default
+  resetButtons = (api) => {
+    if (api === "v2") {
+      this.setState({
+        v2Copied: "Copy Curl",
+        v2Res: "",
+        v2JsonCopied: "JSON"
+
+      })
+    } else {
+      this.setState({
+        v3Copied: "Copy Curl",
+        v3Res: "",
+        v3JsonCopied: "JSON"
+      })
+    }
+  }
+
   // Update text in input fields
   onChangeInputField = (event) => {
     const input = event.target.name
@@ -147,6 +165,7 @@ class App extends Component {
   onSendReq = (req) => {
     const { v2Url, v3Url, endpoint, token } = this.state
     if (req === "v2") {
+      this.resetButtons("v2")
       const url = v2Url + endpoint
       sendReq({ url, token })
         .then(result => {
@@ -174,6 +193,7 @@ class App extends Component {
         })
     } else {
       const url = v3Url + endpoint
+      this.resetButtons("v3")
       sendReq({ url, token })
         .then(result => {
           // create config for v3 result
