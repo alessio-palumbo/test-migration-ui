@@ -25,8 +25,8 @@ class App extends Component {
   state = {
     v2Url: process.env.REACT_APP_V2_ALESSIO,
     v3Url: process.env.REACT_APP_V3_ALESSIO,
-    endpoint: "",
-    token: "",
+    endpoint: "/notifications",
+    token: "5FICmzLR4ZFbxbh66B1HUbuSDoWGqXRqMKN0nsGV",
     v2Copied: "Copy Curl",
     v3Copied: "Copy Curl",
     v2JsonCopied: "JSON",
@@ -158,8 +158,12 @@ class App extends Component {
           })
         })
         .catch(error => {
-          if (error.response === undefined) {
+          if (!error.status) {
             console.log(error.request)
+            this.setState({
+              v2Res: error,
+              v2JsonCopied: 404
+            })
             return
           }
           this.setState({
@@ -180,8 +184,12 @@ class App extends Component {
           })
         })
         .catch(error => {
-          if (error.response === undefined) {
+          if (!error.status) {
             console.log(error.request)
+            this.setState({
+              v3Res: error,
+              v3JsonCopied: 404
+            })
             return
           }
           this.setState({
