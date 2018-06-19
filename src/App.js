@@ -25,8 +25,8 @@ class App extends Component {
   state = {
     v2Url: process.env.REACT_APP_V2_ALESSIO,
     v3Url: process.env.REACT_APP_V3_ALESSIO,
-    endpoint: "/notifications",
-    token: "5FICmzLR4ZFbxbh66B1HUbuSDoWGqXRqMKN0nsGV",
+    endpoint: "",
+    token: "",
     v2Copied: "Copy Curl",
     v3Copied: "Copy Curl",
     v2JsonCopied: "JSON",
