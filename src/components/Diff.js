@@ -15,7 +15,9 @@ export function Diff({
   rightErr,
   idxErrLeft,
   idxErrRight,
-  diffLines,
+  diffLinesL,
+  diffLinesR,
+  diffNum
 }) {
   return (
     <div className="diff">
@@ -32,10 +34,10 @@ export function Diff({
                   {/* <ul id="toolbar" className="toolbar"></ul> */}
                   <div className="d-flex justify-content-around">
                     <pre id="out" className="d-flex text-left codeBlock left">
-                      <CodeBlock res={v2Res} style={`diffGutter`} diffLines={diffLines} />
+                      <CodeBlock res={v2Res} style={`diffGutter`} diffLines={diffLinesL} colors={["bg-success text-white", "bg-info text-white"]} />
                     </pre>
                     <pre id="out2" className="d-flex text-left codeBlock right">
-                      <CodeBlock res={v3Res} style={`diffGutter`} diffLines={diffLines} />
+                      <CodeBlock res={v3Res} style={`diffGutter`} diffLines={diffLinesR} colors={["bg-danger text-white", "bg-warning text-white"]} />
                     </pre>
                   </div>
                 </div>

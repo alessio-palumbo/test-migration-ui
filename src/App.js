@@ -46,7 +46,9 @@ class App extends Component {
       line: "",
       side: ""
     },
-    diffLines: "",
+    diffLinesL: null,
+    diffLinesR: null,
+    diffNum: 0,
     report: ""
   }
 
@@ -305,10 +307,19 @@ class App extends Component {
     jdd.diffs = []
     jdd.diffVal(v2Raw, v2Config, v3Raw, v3Config);
 
-    // Store the error lines
-    const diffLines = []
-    jdd.diffs.map(diff => diffLines.push(diff.path1.line))
-    const diffNum = diffLines.length
+    // Store the error lines and type
+    let itemsL = v2Res.split("\n").length - 1
+    let itemsR = v3Res.split("\n").length - 1
+
+    const diffLinesL = new Array(itemsL)
+    const diffLinesR = new Array(itemsR)
+    let diffNum = 0
+
+    jdd.diffs.map(diff => {
+      diffNum++
+      diffLinesL[diff.path1.line] = diff.type
+      diffLinesR[diff.path2.line] = diff.type
+    })
 
     // Write report
     let report;
@@ -318,7 +329,9 @@ class App extends Component {
       report = `Found ${diffNum} ${diffNum > 1 ? "differences" : "difference"}.`
     }
     this.setState({
-      diffLines: diffLines,
+      diffLinesL: diffLinesL,
+      diffLinesR: diffLinesR,
+      diffNum: diffNum,
       report: report
     })
   }
@@ -340,8 +353,10 @@ class App extends Component {
       btnCompText,
       compared,
       parseError,
-      diffLines,
-      report
+      diffLinesL,
+      diffLinesR,
+      report,
+      diffNum
     } = this.state
 
     return (
@@ -397,8 +412,10 @@ class App extends Component {
           rightErr={parseError.side === "right" && parseError.msg}
           idxErrLeft={parseError.side === "left" && parseError.line}
           idxErrRight={parseError.side === "right" && parseError.line}
-          diffLines={diffLines}
+          diffLinesL={diffLinesL}
+          diffLinesR={diffLinesR}
           report={report}
+          diffNum={diffNum}
         />
         <Footer />
       </div>
