@@ -19,6 +19,8 @@ export function Diff({
   diffLinesR,
   diffNum
 }) {
+  const disBtn = !(typeof v2Res === "string" && typeof v3Res === "string")
+
   return (
     <div className="diff">
       <button className="btn btn-sm diff-btn btn-outline-secondary" onClick={showDiffs}>Show Diffs</button>
@@ -45,7 +47,7 @@ export function Diff({
                 <div spellCheck="false" id="initContainer">
                   <div className="d-flex justify-content-around">
                     <pre id="errorLeft" className="error col text-danger">{leftErr}</pre>
-                    <button className="btn btn-sm btn-custom" id="compare" onClick={onCompare}>Compare</button>
+                    <button className="btn btn-sm btn-custom" id="compare" onClick={onCompare} disabled={disBtn}>Compare</button>
                     <pre id="errorRight mt-1" className="error col text-danger">{rightErr}</pre>
                   </div>
                   <div className="taFCont d-flex justify-content-around">
