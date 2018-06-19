@@ -2,7 +2,11 @@ import React, { Fragment } from 'react';
 import { Gutter } from './Gutter'
 
 export function CodeBlock({ res, style, diffLines }) {
-  const lines = res.split("\n")
+  let lines = []
+  if (typeof res === "string") {
+    lines = res.split("\n")
+    lines.pop()
+  }
 
   return (
     <Fragment>
