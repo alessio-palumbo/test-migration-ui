@@ -13,7 +13,10 @@ export function Apis({
   btnJsonV2,
   btnJsonV3,
   v2Res,
-  v3Res }) {
+  v3Res,
+  v2ResJson,
+  v3ResJson
+}) {
   return (
     <div className="d-flex justify-content-around api-container">
       <div className="api">
@@ -23,8 +26,8 @@ export function Apis({
         <button onClick={() => onSendReq("v2")} className="btn btn-sm btn-custom btn-custom-2">Send Request</button>
         {
           v2Res === "" ?
-            <button onClick={() => onCopyRes("v2")} className="btn btn-sm btn-custom btn-custom-4">JSON</button>
-            : <button onClick={() => onCopyRes("v2")}
+            <button className="btn btn-sm btn-custom btn-custom-4">JSON</button>
+            : <button onClick={() => onCopyRes("v2", v2ResJson)}
               className={`btn btn-sm btn-custom ${(btnJsonV2 === "JSON" || btnJsonV2 === "Copied!") ?
                 "btn-custom-3" : "btn-danger"}`}>{btnJsonV2}</button>
 
@@ -34,11 +37,11 @@ export function Apis({
         <h5>V3</h5>
         <p id="v3" className="d-none">curl -H "Accept: application/json" -H "Authorization: Bearer {token}" "{v3Url}"</p>
         <button onClick={() => onCopyCurl("v3")} className="btn btn-sm btn-custom">{btnTextV3}</button>
-        <button onClick={() => onSendReq("v3")} className="btn btn-sm btn-custom btn-custom-2">Send Request</button>
+        <button onClick={() => onSendReq(v3Res)} className="btn btn-sm btn-custom btn-custom-2">Send Request</button>
         {
           v3Res === "" ?
-            <button onClick={() => onCopyRes("v3")} className="btn btn-sm btn-custom btn-custom-4">JSON</button>
-            : <button onClick={() => onCopyRes("v3")}
+            <button className="btn btn-sm btn-custom btn-custom-4">JSON</button>
+            : <button onClick={() => onCopyRes("v3", v3ResJson)}
               className={`btn btn-sm btn-custom ${(btnJsonV3 === "JSON" || btnJsonV3 === "Copied!") ?
                 "btn-custom-3" : "btn-danger"}`}>{btnJsonV3}</button>
 

@@ -35,8 +35,8 @@ class App extends Component {
     stage: "Alessio",
     v2Res: "",
     v3Res: "",
-    v2ResStatus: "",
-    v3ResStatus: "",
+    v2ResJson: "",
+    v3ResJson: "",
     show: false,
     compared: false,
     v2Config: null,
@@ -79,15 +79,14 @@ class App extends Component {
     if (api === "v2") {
       this.setState({
         v2Copied: "Copy Curl",
-        v2Res: "",
-        v2JsonCopied: "JSON"
-
+        v2JsonCopied: "JSON",
+        v2Res: ""
       })
     } else {
       this.setState({
         v3Copied: "Copy Curl",
-        v3Res: "",
-        v3JsonCopied: "JSON"
+        v3JsonCopied: "JSON",
+        v3Res: ""
       })
     }
   }
@@ -112,25 +111,27 @@ class App extends Component {
   // Clear data when click in the inputs fields
   onClearInput = (event) => {
     const input = event.target
-    this.setState({
-      v2Copied: "Copy Curl",
-      v3Copied: "Copy Curl",
-      v2JsonCopied: "JSON",
-      v3JsonCopied: "JSON",
-      v2Res: "",
-      v3Res: ""
-    })
-    this.setState(() => {
-      if (input.name === "endpoint") {
-        return {
-          endpoint: ""
-        }
-      } else {
-        return {
-          token: ""
-        }
-      }
-    })
+    if (input.name === "endpoint") {
+      this.setState({
+        endpoint: "",
+        v2Copied: "Copy Curl",
+        v3Copied: "Copy Curl",
+        v2JsonCopied: "JSON",
+        v3JsonCopied: "JSON",
+        v2Res: "",
+        v3Res: ""
+      })
+    } else {
+      this.setState({
+        token: "",
+        v2Copied: "Copy Curl",
+        v3Copied: "Copy Curl",
+        v2JsonCopied: "JSON",
+        v3JsonCopied: "JSON",
+        v2Res: "",
+        v3Res: ""
+      })
+    }
   }
 
   // Copy JSON to clipboard
@@ -173,21 +174,22 @@ class App extends Component {
           const v2Config = jdd.createConfig();
           jdd.formatAndDecorate(v2Config, result);
           this.setState({
-            v2Res: v2Config.out,
+            v2ResJson: JSON.stringify(result),
+            v2Res: v2Config.out
           })
         })
         .catch(error => {
           if (!error.status) {
-            console.log(error.request)
+            let idx = error.message.indexOf("code") + 5
+            let eMsg = error.message.slice(idx, (idx + 3))
             this.setState({
               v2Res: error,
-              v2JsonCopied: 404
+              v2JsonCopied: eMsg
             })
             return
           }
           this.setState({
             v2Res: error,
-            v2ResStatus: error.response.status,
             v2JsonCopied: error.response.status
           })
         })
@@ -200,21 +202,22 @@ class App extends Component {
           const v3Config = jdd.createConfig();
           jdd.formatAndDecorate(v3Config, result);
           this.setState({
-            v3Res: v3Config.out,
+            v3ResJson: JSON.stringify(result),
+            v3Res: v3Config.out
           })
         })
         .catch(error => {
           if (!error.status) {
-            console.log(error.request)
+            let idx = error.message.indexOf("code") + 5
+            let eMsg = error.message.slice(idx, (idx + 3))
             this.setState({
               v3Res: error,
-              v3JsonCopied: 404
+              v3JsonCopied: eMsg
             })
             return
           }
           this.setState({
             v3Res: error,
-            v3ResStatus: error.response.status,
             v3JsonCopied: error.response.status
           })
         })
@@ -222,16 +225,15 @@ class App extends Component {
   }
 
   // Copy JSON response to clipboard
-  onCopyRes = (res) => {
-    const { v2Res, v3Res } = this.state
-    if (res === "v2") {
-      this.copyToClipboard(v2Res)
+  onCopyRes = (api, res) => {
+    if (api === "v2") {
+      this.copyToClipboard(res)
       this.setState({
         v2JsonCopied: "Copied!",
         v3JsonCopied: "JSON"
       })
     } else {
-      this.copyToClipboard(v3Res)
+      this.copyToClipboard(res)
       this.setState({
         v3JsonCopied: "Copied!",
         v2JsonCopied: "JSON"
@@ -259,7 +261,6 @@ class App extends Component {
   onUpdateRes = (event) => {
     const ta = event.target.id
     const input = event.target.value
-    console.log(input)
     if (ta === "textarealeft") {
       this.validateJSON(input, "left")
       this.setState({
@@ -384,7 +385,9 @@ class App extends Component {
       diffLinesL,
       diffLinesR,
       report,
-      diffNum
+      diffNum,
+      v2ResJson,
+      v3ResJson
     } = this.state
 
     return (
@@ -423,6 +426,8 @@ class App extends Component {
           btnTextV3={v3Copied}
           btnJsonV2={v2JsonCopied}
           btnJsonV3={v3JsonCopied}
+          v2ResJson={v2ResJson}
+          v3ResJson={v3ResJson}
           v2Res={v2Res}
           v3Res={v3Res}
         />
