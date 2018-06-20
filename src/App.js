@@ -64,13 +64,12 @@ class App extends Component {
     this.setState({
       endpoint: endpoint,
       token: token
-    }, async () => {
-      await this.onSendReq("v2")
-      await this.onSendReq("v3")
-      setTimeout(() => {
-        this.onShowDiffs()
-        this.compareJSON()
-      }, 3000)
+    }, function () {
+      Promise.all([this.onSendReq("v2"), this.onSendReq("v3")])
+        .then(() => {
+          this.setState({ show: !this.state.show },
+            this.onCompare())
+        })
     })
   }
 
@@ -164,64 +163,68 @@ class App extends Component {
 
   // Send http request to api
   onSendReq = (req) => {
-    const { v2Url, v3Url, endpoint, token } = this.state
-    if (req === "v2") {
-      this.resetButtons("v2")
-      const url = v2Url + endpoint
-      sendReq({ url, token })
-        .then(result => {
-          // create config for v2 result
-          const v2Config = jdd.createConfig();
-          jdd.formatAndDecorate(v2Config, result);
-          this.setState({
-            v2ResJson: JSON.stringify(result),
-            v2Res: v2Config.out
+    return new Promise((resolve, reject) => {
+      const { v2Url, v3Url, endpoint, token } = this.state
+      if (req === "v2") {
+        this.resetButtons("v2")
+        const url = v2Url + endpoint
+        sendReq({ url, token })
+          .then(result => {
+            // create config for v2 result
+            const v2Config = jdd.createConfig();
+            jdd.formatAndDecorate(v2Config, result);
+            this.setState({
+              v2ResJson: JSON.stringify(result),
+              v2Res: v2Config.out
+            })
+            resolve("Success")
           })
-        })
-        .catch(error => {
-          if (!error.status) {
-            let idx = error.message.indexOf("code") + 5
-            let eMsg = error.message.slice(idx, (idx + 3))
+          .catch(error => {
+            if (!error.status) {
+              let idx = error.message.indexOf("code") + 5
+              let eMsg = error.message.slice(idx, (idx + 3))
+              this.setState({
+                v2Res: error,
+                v2JsonCopied: eMsg
+              })
+              return
+            }
             this.setState({
               v2Res: error,
-              v2JsonCopied: eMsg
+              v2JsonCopied: error.response.status
             })
-            return
-          }
-          this.setState({
-            v2Res: error,
-            v2JsonCopied: error.response.status
           })
-        })
-    } else {
-      const url = v3Url + endpoint
-      this.resetButtons("v3")
-      sendReq({ url, token })
-        .then(result => {
-          // create config for v3 result
-          const v3Config = jdd.createConfig();
-          jdd.formatAndDecorate(v3Config, result);
-          this.setState({
-            v3ResJson: JSON.stringify(result),
-            v3Res: v3Config.out
+      } else {
+        const url = v3Url + endpoint
+        this.resetButtons("v3")
+        sendReq({ url, token })
+          .then(result => {
+            // create config for v3 result
+            const v3Config = jdd.createConfig();
+            jdd.formatAndDecorate(v3Config, result);
+            this.setState({
+              v3ResJson: JSON.stringify(result),
+              v3Res: v3Config.out
+            })
+            resolve("Success")
           })
-        })
-        .catch(error => {
-          if (!error.status) {
-            let idx = error.message.indexOf("code") + 5
-            let eMsg = error.message.slice(idx, (idx + 3))
+          .catch(error => {
+            if (!error.status) {
+              let idx = error.message.indexOf("code") + 5
+              let eMsg = error.message.slice(idx, (idx + 3))
+              this.setState({
+                v3Res: error,
+                v3JsonCopied: eMsg
+              })
+              return
+            }
             this.setState({
               v3Res: error,
-              v3JsonCopied: eMsg
+              v3JsonCopied: error.response.status
             })
-            return
-          }
-          this.setState({
-            v3Res: error,
-            v3JsonCopied: error.response.status
           })
-        })
-    }
+      }
+    })
   }
 
   // Copy JSON response to clipboard
