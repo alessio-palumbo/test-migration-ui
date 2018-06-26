@@ -61,7 +61,7 @@ class App extends Component {
     if (url === uri) return
 
     const endpoint = url.slice((url.indexOf('endpoint') + 9), url.indexOf('&token'))
-    const token = url.slice(url.indexOf('token') + 6)
+    const token = url.slice(url.indexOf('token') + 6, url.indexOf('token') + 47)
 
     this.setState({
       endpoint: endpoint,
@@ -224,7 +224,6 @@ class App extends Component {
           .catch(error => {
             if (!error.status) {
               let eMsg
-              console.log(error.message.indexOf('code'))
               if (error.message.indexOf('code') !== -1) {
                 let idx = error.message.indexOf('code') + 5
                 eMsg = error.message.slice(idx, (idx + 3))
