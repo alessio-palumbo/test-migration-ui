@@ -34,6 +34,10 @@ class App extends Component {
     v2JsonCopied: 'JSON',
     v3JsonCopied: 'JSON',
     method: 'GET',
+    stageEnvs: [
+      "PG_2",
+      "PG"
+    ],
     stage: 'PG_2',
     v2Res: '',
     v3Res: '',
@@ -73,22 +77,30 @@ class App extends Component {
   }
 
   // Reset buttons text to default
-  resetButtons =
-    (api) => {
-      if (api === 'v2') {
-        this.setState({
-          v2Copied: 'Copy Curl',
-          v2JsonCopied: 'JSON',
-          v2Res: ''
-        })
-      } else {
-        this.setState({
-          v3Copied: 'Copy Curl',
-          v3JsonCopied: 'JSON',
-          v3Res: ''
-        })
-      }
+  resetButtons = (api) => {
+    if (api === 'v2') {
+      this.setState({
+        v2Copied: 'Copy Curl',
+        v2JsonCopied: 'JSON',
+        v2Res: ''
+      })
+    } else if (api === 'v3') {
+      this.setState({
+        v3Copied: 'Copy Curl',
+        v3JsonCopied: 'JSON',
+        v3Res: ''
+      })
+    } else {
+      this.setState({
+        v2Copied: 'Copy Curl',
+        v2JsonCopied: 'JSON',
+        v2Res: '',
+        v3Copied: 'Copy Curl',
+        v3JsonCopied: 'JSON',
+        v3Res: ''
+      })
     }
+  }
 
   // Update text in input fields
   onChangeInputField = (event) => {
@@ -244,16 +256,15 @@ class App extends Component {
   onChangeValue = (event) => {
     const id = event.target.id
     const input = event.target.value
+    this.resetButtons("all")
     if (id === 'method') {
       this.setState({
         method: input
       })
     } else {
-      this.setState({
-        stage: input
-      })
       const urls = (input === 'PG_2' ? stages.PG_2 : stages.PG)
       this.setState({
+        stage: input,
         v2Url: urls[0],
         v3Url: urls[1]
       })
@@ -402,7 +413,8 @@ class App extends Component {
       report,
       diffNum,
       v2ResJson,
-      v3ResJson
+      v3ResJson,
+      stageEnvs
     } = this.state
 
     return (
@@ -411,9 +423,9 @@ class App extends Component {
           <h1 className='title'>Migration Testing</h1>
           <br />
           <Method
-            onChangeValue={
-              this.onChangeValue
-            } />
+            onChangeValue={this.onChangeValue}
+            stages={stageEnvs}
+          />
           <br />
           <Input
             label='Endpoint'

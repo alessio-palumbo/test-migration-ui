@@ -1,12 +1,15 @@
 import React from 'react';
 
-export function Method({ onChangeValue }) {
+export function Method({ onChangeValue, stages }) {
   return (
     <div className="">
       <label className="text-white" htmlFor="stage">Stage: <br />
         <select className="btn dropB form-control" id="stage" onChange={onChangeValue}>
-          <option value="Alessio">Alessio</option>
-          <option value="PG">PG</option>
+          {
+            stages && stages.map(stage =>
+              <option value={stage}>{stage}</option>
+            )
+          }
         </select>
       </label>
       <label className="text-white ml-4" htmlFor="method">Method: <br />
