@@ -1,19 +1,21 @@
-import React, { Component } from 'react';
 import './App.css';
 import './bootstrap-4.0.0-beta.2-dist/css/bootstrap.css'
-import { Input } from './components/Input'
+
+import jsonlint from 'jsonlint-mod'
+import React, { Component } from 'react';
+
 import { Apis } from './components/Apis'
-import { Method } from './components/Method'
 import { Diff } from './components/Diff'
 import { Footer } from './components/Footer'
+import { Input } from './components/Input'
+import { Method } from './components/Method'
 import { sendReq } from './components/Request'
 import jdd from './libs/jdd'
-import jsonlint from 'jsonlint-mod'
 
 const stages = {
-  Alessio: [
-    process.env.REACT_APP_V2_ALESSIO,
-    process.env.REACT_APP_V3_ALESSIO
+  PG_2: [
+    process.env.REACT_APP_V2_PG_2,
+    process.env.REACT_APP_V3_PG_2
   ],
   PG: [
     process.env.REACT_APP_V2_PG,
@@ -23,112 +25,103 @@ const stages = {
 
 class App extends Component {
   state = {
-    v2Url: process.env.REACT_APP_V2_ALESSIO,
-    v3Url: process.env.REACT_APP_V3_ALESSIO,
-    endpoint: "",
-    token: "",
-    v2Copied: "Copy Curl",
-    v3Copied: "Copy Curl",
-    v2JsonCopied: "JSON",
-    v3JsonCopied: "JSON",
-    method: "GET",
-    stage: "Alessio",
-    v2Res: "",
-    v3Res: "",
-    v2ResJson: "",
-    v3ResJson: "",
+    v2Url: process.env.REACT_APP_V2_PG_2,
+    v3Url: process.env.REACT_APP_V3_PG_2,
+    endpoint: '',
+    token: '',
+    v2Copied: 'Copy Curl',
+    v3Copied: 'Copy Curl',
+    v2JsonCopied: 'JSON',
+    v3JsonCopied: 'JSON',
+    method: 'GET',
+    stage: 'PG_2',
+    v2Res: '',
+    v3Res: '',
+    v2ResJson: '',
+    v3ResJson: '',
     show: false,
     compared: false,
     v2Config: null,
     v3Config: null,
-    parseError: {
-      msg: "",
-      line: "",
-      side: ""
-    },
+    parseError: { msg: '', line: '', side: '' },
     diffLinesL: null,
     diffLinesR: null,
     diffNum: 0,
-    report: ""
+    report: ''
   }
 
   componentDidMount() {
     // Check if query params can be parsed (for request coming from slack)
     const uri = window.location.href
-    const url = uri.slice(uri.indexOf("?") + 1)
-    if (url === uri) {
-      return
-    }
-    const endpoint = url.slice((url.indexOf("endpoint") + 9), url.indexOf("&token"))
-    const token = url.slice(url.indexOf("token") + 6)
+    const url = uri.slice(uri.indexOf('?') + 1)
+    if (url === uri) return
+
+    const endpoint = url.slice((url.indexOf('endpoint') + 9), url.indexOf('&token'))
+    const token = url.slice(url.indexOf('token') + 6)
+
     this.setState({
       endpoint: endpoint,
       token: token
     }, function () {
-      Promise.all([this.onSendReq("v2"), this.onSendReq("v3")])
+      Promise.all([this.onSendReq('v2'), this.onSendReq('v3')])
         .then(() => {
-          this.setState({ show: !this.state.show },
-            this.onCompare())
+          this.setState({
+            show: !this.state.show
+          }, this.onCompare())
         })
     })
   }
 
   // Reset buttons text to default
-  resetButtons = (api) => {
-    if (api === "v2") {
-      this.setState({
-        v2Copied: "Copy Curl",
-        v2JsonCopied: "JSON",
-        v2Res: ""
-      })
-    } else {
-      this.setState({
-        v3Copied: "Copy Curl",
-        v3JsonCopied: "JSON",
-        v3Res: ""
-      })
+  resetButtons =
+    (api) => {
+      if (api === 'v2') {
+        this.setState({
+          v2Copied: 'Copy Curl',
+          v2JsonCopied: 'JSON',
+          v2Res: ''
+        })
+      } else {
+        this.setState({
+          v3Copied: 'Copy Curl',
+          v3JsonCopied: 'JSON',
+          v3Res: ''
+        })
+      }
     }
-  }
 
   // Update text in input fields
   onChangeInputField = (event) => {
     const input = event.target.name
     const text = event.target.value.trim()
-    this.setState(() => {
-      if (input === "endpoint") {
-        return {
-          endpoint: text
-        }
-      } else {
-        return {
-          token: text
-        }
-      }
-    })
+
+    input === 'endpoint' ?
+      (this.setState({ endpoint: text }))
+      : (this.setState({ token: text }))
   }
 
   // Clear data when click in the inputs fields
   onClearInput = (event) => {
     const input = event.target
-    if (input.name === "endpoint") {
+    if (input.name === 'endpoint') {
       this.setState({
-        endpoint: "",
-        v2Copied: "Copy Curl",
-        v3Copied: "Copy Curl",
-        v2JsonCopied: "JSON",
-        v3JsonCopied: "JSON",
-        v2Res: "",
-        v3Res: ""
+        endpoint: '',
+        v2Copied: 'Copy Curl',
+        v3Copied: 'Copy Curl',
+        v2JsonCopied: 'JSON',
+        v3JsonCopied: 'JSON',
+        v2Res: '',
+        v3Res: ''
       })
     } else {
       this.setState({
-        token: "",
-        v2Copied: "Copy Curl",
-        v3Copied: "Copy Curl",
-        v2JsonCopied: "JSON",
-        v3JsonCopied: "JSON",
-        v2Res: "",
-        v3Res: ""
+        token: '',
+        v2Copied: 'Copy Curl',
+        v3Copied: 'Copy Curl',
+        v2JsonCopied: 'JSON',
+        v3JsonCopied: 'JSON',
+        v2Res: '',
+        v3Res: ''
       })
     }
   }
@@ -148,15 +141,15 @@ class App extends Component {
     const field = document.getElementById(itemId)
     const text = field.textContent
     this.copyToClipboard(text)
-    if (itemId === "v2") {
+    if (itemId === 'v2') {
       this.setState({
-        v2Copied: "Copied!",
-        v3Copied: "Copy"
+        v2Copied: 'Copied!',
+        v3Copied: 'Copy'
       })
     } else {
       this.setState({
-        v3Copied: "Copied!",
-        v2Copied: "Copy"
+        v3Copied: 'Copied!',
+        v2Copied: 'Copy'
       })
     }
   }
@@ -165,9 +158,11 @@ class App extends Component {
   onSendReq = (req) => {
     return new Promise((resolve, reject) => {
       const { v2Url, v3Url, endpoint, token } = this.state
-      if (req === "v2") {
-        this.resetButtons("v2")
+
+      if (req === 'v2') {
+        this.resetButtons('v2')
         const url = v2Url + endpoint
+
         sendReq({ url, token })
           .then(result => {
             // create config for v2 result
@@ -177,11 +172,11 @@ class App extends Component {
               v2ResJson: JSON.stringify(result),
               v2Res: v2Config.out
             })
-            resolve("Success")
+            resolve('Success')
           })
           .catch(error => {
             if (!error.status) {
-              let idx = error.message.indexOf("code") + 5
+              let idx = error.message.indexOf('code') + 5
               let eMsg = error.message.slice(idx, (idx + 3))
               this.setState({
                 v2Res: error,
@@ -196,7 +191,8 @@ class App extends Component {
           })
       } else {
         const url = v3Url + endpoint
-        this.resetButtons("v3")
+        this.resetButtons('v3')
+
         sendReq({ url, token })
           .then(result => {
             // create config for v3 result
@@ -206,11 +202,11 @@ class App extends Component {
               v3ResJson: JSON.stringify(result),
               v3Res: v3Config.out
             })
-            resolve("Success")
+            resolve('Success')
           })
           .catch(error => {
             if (!error.status) {
-              let idx = error.message.indexOf("code") + 5
+              let idx = error.message.indexOf('code') + 5
               let eMsg = error.message.slice(idx, (idx + 3))
               this.setState({
                 v3Res: error,
@@ -229,17 +225,17 @@ class App extends Component {
 
   // Copy JSON response to clipboard
   onCopyRes = (api, res) => {
-    if (api === "v2") {
+    if (api === 'v2') {
       this.copyToClipboard(res)
       this.setState({
-        v2JsonCopied: "Copied!",
-        v3JsonCopied: "JSON"
+        v2JsonCopied: 'Copied!',
+        v3JsonCopied: 'JSON'
       })
     } else {
       this.copyToClipboard(res)
       this.setState({
-        v3JsonCopied: "Copied!",
-        v2JsonCopied: "JSON"
+        v3JsonCopied: 'Copied!',
+        v2JsonCopied: 'JSON'
       })
     }
   }
@@ -248,11 +244,15 @@ class App extends Component {
   onChangeValue = (event) => {
     const id = event.target.id
     const input = event.target.value
-    if (id === "method") {
-      this.setState({ method: input })
+    if (id === 'method') {
+      this.setState({
+        method: input
+      })
     } else {
-      this.setState({ stage: input })
-      const urls = (input === "Alessio" ? stages.Alessio : stages.PG)
+      this.setState({
+        stage: input
+      })
+      const urls = (input === 'PG_2' ? stages.PG_2 : stages.PG)
       this.setState({
         v2Url: urls[0],
         v3Url: urls[1]
@@ -264,34 +264,40 @@ class App extends Component {
   onUpdateRes = (event) => {
     const ta = event.target.id
     const input = event.target.value
-    if (ta === "textarealeft") {
-      this.validateJSON(input, "left")
+    if (ta === 'textarealeft') {
+      this.validateJSON(input, 'left')
       this.setState({
         v2Res: input
       })
     } else {
-      this.validateJSON(input, "right")
+      this.validateJSON(input, 'right')
       this.setState({
         v3Res: input
       })
-
     }
   }
 
   // Show/Hide comparison
   onShowDiffs = () => {
-    this.setState({ show: !this.state.show })
+    this.setState({
+      show: !this.state.show
+    })
   }
 
   // Call compareJSON and change compare button layout
   onCompare = () => {
     const { compared } = this.state
     if (compared === false) {
-      if (this.compareJSON() === "invalid") { return }
-      this.setState({ compared: true })
+      if (this.compareJSON() === 'invalid') {
+        return
+      }
+      this.setState({
+        compared: true
+      })
     } else {
-      this.setState({ compared: false })
-
+      this.setState({
+        compared: false
+      })
     }
   }
 
@@ -300,13 +306,15 @@ class App extends Component {
     try {
       let parsedInput = jsonlint.parse(input)
       // if no parsing errors reset parsing errors
-      this.setState({ parseError: {} })
+      this.setState({
+        parseError: {}
+      })
       return parsedInput
     } catch (e) {
       let msg = e.message
-      msg = msg.substring(0, msg.indexOf(":"))
-      if (msg.indexOf("Parse error") !== -1) {
-        let line = msg.substring((msg.indexOf("line") + 5))
+      msg = msg.substring(0, msg.indexOf(':'))
+      if (msg.indexOf('Parse error') !== -1) {
+        let line = msg.substring((msg.indexOf('line') + 5))
         this.setState({
           parseError: {
             msg: msg,
@@ -324,10 +332,14 @@ class App extends Component {
     const { v2Res, v3Res } = this.state
     // validate the json input
     let v2Raw, v3Raw
-    v2Raw = this.validateJSON(v2Res, "left")
-    if (v2Raw === false) { return "invalid" }
-    v3Raw = this.validateJSON(v3Res, "right")
-    if (v3Raw === false) { return "invalid" }
+    v2Raw = this.validateJSON(v2Res, 'left')
+    if (v2Raw === false) {
+      return 'invalid'
+    }
+    v3Raw = this.validateJSON(v3Res, 'right')
+    if (v3Raw === false) {
+      return 'invalid'
+    }
 
     // create config
     const v2Config = jdd.createConfig();
@@ -340,8 +352,8 @@ class App extends Component {
     jdd.diffVal(v2Raw, v2Config, v3Raw, v3Config);
 
     // Store the error lines and type
-    let itemsL = v2Res.split("\n").length - 1
-    let itemsR = v3Res.split("\n").length - 1
+    let itemsL = v2Res.split('\n').length - 1
+    let itemsR = v3Res.split('\n').length - 1
 
     const diffLinesL = new Array(itemsL)
     const diffLinesR = new Array(itemsR)
@@ -356,9 +368,9 @@ class App extends Component {
     // Write report
     let report;
     if (diffNum === 0) {
-      report = "Yey! No differences found!"
+      report = 'Yey! No differences found!'
     } else {
-      report = `Found ${diffNum} ${diffNum > 1 ? "differences" : "difference"}.`
+      report = `Found ${diffNum} ${diffNum > 1 ? 'differences' : 'difference'}.`
     }
     this.setState({
       diffLinesL: diffLinesL,
@@ -394,17 +406,18 @@ class App extends Component {
     } = this.state
 
     return (
-      <div className="App" >
-        <div className="jumbotron">
-          <h1 className="title">Migration Testing</h1>
+      <div className='App'>
+        <div className='jumbotron'>
+          <h1 className='title'>Migration Testing</h1>
           <br />
           <Method
-            onChangeValue={this.onChangeValue}
-          />
+            onChangeValue={
+              this.onChangeValue
+            } />
           <br />
           <Input
-            label="Endpoint"
-            name="endpoint"
+            label='Endpoint'
+            name='endpoint'
             value={endpoint}
             onChangeField={this.onChangeInputField}
             onClearField={this.onClearInput}
@@ -444,18 +457,17 @@ class App extends Component {
           onUpdateRes={this.onUpdateRes}
           btnCompText={btnCompText}
           compared={compared}
-          leftErr={parseError.side === "left" && parseError.msg}
-          rightErr={parseError.side === "right" && parseError.msg}
-          idxErrLeft={parseError.side === "left" && parseError.line}
-          idxErrRight={parseError.side === "right" && parseError.line}
+          leftErr={parseError.side === 'left' && parseError.msg}
+          rightErr={parseError.side === 'right' && parseError.msg}
+          idxErrLeft={parseError.side === 'left' && parseError.line}
+          idxErrRight={parseError.side === 'right' && parseError.line}
           diffLinesL={diffLinesL}
           diffLinesR={diffLinesR}
-          report={report}
-          diffNum={diffNum}
+          report={report} diffNum={diffNum}
         />
         <Footer />
       </div>
-    );
+    )
   }
 }
 
