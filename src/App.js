@@ -188,8 +188,13 @@ class App extends Component {
           })
           .catch(error => {
             if (!error.status) {
-              let idx = error.message.indexOf('code') + 5
-              let eMsg = error.message.slice(idx, (idx + 3))
+              let eMsg
+              if (error.message.indexOf('code') !== -1) {
+                let idx = error.message.indexOf('code') + 5
+                eMsg = error.message.slice(idx, (idx + 3))
+              } else {
+                eMsg = "404"
+              }
               this.setState({
                 v2Res: error,
                 v2JsonCopied: eMsg
@@ -218,8 +223,14 @@ class App extends Component {
           })
           .catch(error => {
             if (!error.status) {
-              let idx = error.message.indexOf('code') + 5
-              let eMsg = error.message.slice(idx, (idx + 3))
+              let eMsg
+              console.log(error.message.indexOf('code'))
+              if (error.message.indexOf('code') !== -1) {
+                let idx = error.message.indexOf('code') + 5
+                eMsg = error.message.slice(idx, (idx + 3))
+              } else {
+                eMsg = "404"
+              }
               this.setState({
                 v3Res: error,
                 v3JsonCopied: eMsg
