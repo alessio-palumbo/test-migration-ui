@@ -76,7 +76,12 @@ class App extends Component {
     if (query) {
       const endpoint = this.getQueryParam("endpoint")
       const token = this.getQueryParam("token")
-      const stage = this.getQueryParam("stage").toUpperCase().replace("-", "_") || this.state.stage
+      let stage = this.getQueryParam("stage")
+      if (stage) {
+        stage = stage.toUpperCase().replace("-", "_")
+      } else {
+        stage = this.state.stage
+      }
 
       this.setState({
         endpoint: endpoint,
@@ -193,7 +198,9 @@ class App extends Component {
 
       if (req === 'v2') {
         this.resetButtons('v2')
-        const url = v2Url + endpoint
+        let url = v2Url + endpoint
+        url.indexOf('?') === -1 ? url += '?testing' : url += '&testing'
+        console.log(url)
 
         sendReq({ url, token })
           .then(result => {
