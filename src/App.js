@@ -13,14 +13,18 @@ import { sendReq } from './components/Request'
 import jdd from './libs/jdd'
 
 const stages = {
-  PG_2: [
+  "PG_1": [
+    process.env.REACT_APP_V2_PG_1,
+    process.env.REACT_APP_V3_PG_2
+  ],
+  "PG_2": [
     process.env.REACT_APP_V2_PG_2,
     process.env.REACT_APP_V3_PG_2
   ],
-  PG: [
-    process.env.REACT_APP_V2_PG,
-    process.env.REACT_APP_V3_PG
-  ]
+  "STG": [
+    process.env.REACT_APP_V2_STG,
+    process.env.REACT_APP_V3_PG_2
+  ],
 }
 
 class App extends Component {
@@ -35,8 +39,9 @@ class App extends Component {
     v3JsonCopied: 'JSON',
     method: 'GET',
     stageEnvs: [
+      "PG_1",
       "PG_2",
-      "PG"
+      "STG"
     ],
     stage: 'PG_2',
     v2Res: '',
@@ -61,11 +66,16 @@ class App extends Component {
     if (url === uri) return
 
     const endpoint = url.slice((url.indexOf('endpoint') + 9), url.indexOf('&token'))
-    const token = url.slice(url.indexOf('token') + 6, url.indexOf('token') + 47)
+    const token = url.slice(url.indexOf('token') + 6, url.indexOf('token') + 46)
+    const stage = url.slice(url.indexOf('stage') + 6).toUpperCase().replace("-", "_")
+    console.log(stage)
 
     this.setState({
       endpoint: endpoint,
-      token: token
+      token: token,
+      stage: stage,
+      v2Url: stages[stage][0],
+      v3Url: stages[stage][1]
     }, function () {
       Promise.all([this.onSendReq('v2'), this.onSendReq('v3')])
         .then(() => {
@@ -266,17 +276,17 @@ class App extends Component {
   onChangeValue = (event) => {
     const id = event.target.id
     const input = event.target.value
+    console.log(input)
     this.resetButtons("all")
     if (id === 'method') {
       this.setState({
         method: input
       })
     } else {
-      const urls = (input === 'PG_2' ? stages.PG_2 : stages.PG)
       this.setState({
         stage: input,
-        v2Url: urls[0],
-        v3Url: urls[1]
+        v2Url: stages[input][0],
+        v3Url: stages[input][1]
       })
     }
   }
@@ -424,7 +434,8 @@ class App extends Component {
       diffNum,
       v2ResJson,
       v3ResJson,
-      stageEnvs
+      stageEnvs,
+      stage
     } = this.state
 
     return (
@@ -435,6 +446,7 @@ class App extends Component {
           <Method
             onChangeValue={this.onChangeValue}
             stages={stageEnvs}
+            currentStage={stage}
           />
           <br />
           <Input

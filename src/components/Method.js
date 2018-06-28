@@ -1,13 +1,13 @@
 import React from 'react';
 
-export function Method({ onChangeValue, stages }) {
+export function Method({ onChangeValue, stages, currentStage }) {
   return (
     <div className="">
       <label className="text-white" htmlFor="stage">Stage: <br />
         <select className="btn dropB form-control" id="stage" onChange={onChangeValue}>
           {
             stages && stages.map(stage =>
-              <option value={stage}>{stage}</option>
+              <option value={stage} selected={currentStage === stage && "selected"}>{stage}</option>
             )
           }
         </select>

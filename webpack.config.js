@@ -11,10 +11,10 @@ module.exports = {
   },
   plugins: [
     new webpack.DefinePlugin({
-      V2_PG_2: JSON.stringify(process.env.REACT_APP_V2_PG_2),
       V3_PG_2: JSON.stringify(process.env.REACT_APP_V3_PG_2),
-      V2_PG: JSON.stringify(process.env.REACT_APP_V2_PG),
-      V3_PG: JSON.stringify(process.env.REACT_APP_V3_PG)
+      V2_PG_1: JSON.stringify(process.env.REACT_APP_V2_PG_1),
+      V2_PG_2: JSON.stringify(process.env.REACT_APP_V2_PG_2),
+      V2_STG: JSON.stringify(process.env.REACT_APP_V3_STG)
     })
   ]
 }
