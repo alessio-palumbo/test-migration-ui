@@ -65,7 +65,12 @@ class App extends Component {
     const url = uri.slice(uri.indexOf('?') + 1)
     if (url === uri) return
 
-    const endpoint = url.slice((url.indexOf('endpoint') + 9), url.indexOf('&token'))
+    let endpoint = url.slice((url.indexOf('endpoint') + 9), url.indexOf('&token'))
+    // Handle when endpoint doesn't have queryParams but has stage attached
+    if ((endpoint.indexOf('?') === -1) && (endpoint.indexOf('&stage') !== -1)) {
+      console.log("hi")
+      endpoint = endpoint.replace('&stage', '?stage')
+    }
     const token = url.slice(url.indexOf('token') + 6, url.indexOf('token') + 46)
     const stage = url.slice(url.indexOf('stage') + 6, url.indexOf('&token')).toUpperCase().replace("-", "_") || this.state.stage
 
