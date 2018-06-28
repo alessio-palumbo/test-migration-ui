@@ -59,35 +59,41 @@ class App extends Component {
     report: ''
   }
 
+  getQueryParam = key => {
+    const query = window.location.search.substring(1);
+    const params = query.split("&");
+    let value;
+    params.map(param => {
+      let keyValue = param.split("=")
+      if (keyValue[0] === key) return value = keyValue[1]
+    })
+    return value
+  }
+
   componentDidMount() {
     // Check if query params can be parsed (for request coming from slack)
-    const uri = window.location.href
-    const url = uri.slice(uri.indexOf('?') + 1)
-    if (url === uri) return
+    const query = window.location.search.substring(1);
+    if (query) {
+      const endpoint = this.getQueryParam("endpoint")
+      const token = this.getQueryParam("token")
+      const stage = this.getQueryParam("stage").toUpperCase().replace("-", "_") || this.state.stage
 
-    let endpoint = url.slice((url.indexOf('endpoint') + 9), url.indexOf('&token'))
-    // Handle when endpoint doesn't have queryParams but has stage attached
-    if ((endpoint.indexOf('?') === -1) && (endpoint.indexOf('&stage') !== -1)) {
-      console.log("hi")
-      endpoint = endpoint.replace('&stage', '?stage')
+      this.setState({
+        endpoint: endpoint,
+        token: token,
+        stage: stage,
+        v2Url: stages[stage][0],
+        v3Url: stages[stage][1]
+      }, function () {
+        Promise.all([this.onSendReq('v2'), this.onSendReq('v3')])
+          .then(() => {
+            this.setState({
+              show: !this.state.show
+            }, this.onCompare())
+          })
+      })
     }
-    const token = url.slice(url.indexOf('token') + 6, url.indexOf('token') + 46)
-    const stage = url.slice(url.indexOf('stage') + 6, url.indexOf('&token')).toUpperCase().replace("-", "_") || this.state.stage
 
-    this.setState({
-      endpoint: endpoint,
-      token: token,
-      stage: stage,
-      v2Url: stages[stage][0],
-      v3Url: stages[stage][1]
-    }, function () {
-      Promise.all([this.onSendReq('v2'), this.onSendReq('v3')])
-        .then(() => {
-          this.setState({
-            show: !this.state.show
-          }, this.onCompare())
-        })
-    })
   }
 
   // Reset buttons text to default
@@ -221,7 +227,18 @@ class App extends Component {
             })
           })
       } else {
-        const url = v3Url + endpoint
+        let url = v3Url + endpoint
+        // Handle when stage queryParam for v3 testing
+        let stage = this.state.stage
+        if (stage !== 'PG_2') {
+          stage = stage.toLowerCase().replace("_", "-")
+          if (url.indexOf('?') === -1) {
+            url += `?stage=${stage}`
+            console.log(url)
+          } else {
+            url += `&stage=${stage}`
+          }
+        }
         this.resetButtons('v3')
 
         sendReq({ url, token })
