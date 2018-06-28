@@ -67,8 +67,7 @@ class App extends Component {
 
     const endpoint = url.slice((url.indexOf('endpoint') + 9), url.indexOf('&token'))
     const token = url.slice(url.indexOf('token') + 6, url.indexOf('token') + 46)
-    const stage = url.slice(url.indexOf('stage') + 6).toUpperCase().replace("-", "_")
-    console.log(stage)
+    const stage = url.slice(url.indexOf('stage') + 6, url.indexOf('&token')).toUpperCase().replace("-", "_") || this.state.stage
 
     this.setState({
       endpoint: endpoint,
