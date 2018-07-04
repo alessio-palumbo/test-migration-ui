@@ -60,19 +60,23 @@ class App extends Component {
   }
 
   getQueryParam = key => {
-    const query = window.location.search.substring(1);
-    const params = query.split("&");
-    let value;
+    const query = window.location.search.substring(1)
+    // Since endpoint can contains multiple query param will split the strinat &token and take the first bit
+    if (key === 'endpoint') {
+      return query.split('&token')[0].substring(9)
+    }
+    const params = query.split('&')
+    let value
     params.map(param => {
-      let keyValue = param.split("=")
-      if (keyValue[0] === key) return value = keyValue[1]
+      let keyValue = param.split('=')
+      if (keyValue[0] === key) return (value = keyValue[1])
     })
     return value
   }
 
   componentDidMount() {
     // Check if query params can be parsed (for request coming from slack)
-    const query = window.location.search.substring(1);
+    const query = window.location.search.substring(1)
     if (query) {
       const endpoint = this.getQueryParam("endpoint")
       const token = this.getQueryParam("token")
