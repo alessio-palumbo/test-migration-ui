@@ -84,12 +84,7 @@ class App extends Component {
         },
         function() {
           Promise.all([this.onSendReq('v2'), this.onSendReq('v3')]).then(() => {
-            this.setState(
-              {
-                show: !this.state.show
-              },
-              this.onCompare()
-            )
+            this.setState({ show: !this.state.show }, this.onCompare())
           })
         }
       )
@@ -127,9 +122,7 @@ class App extends Component {
     const input = event.target.name
     const text = event.target.value.trim()
 
-    input === 'endpoint'
-      ? this.setState({ endpoint: text })
-      : this.setState({ token: text })
+    input === 'endpoint' ? this.setState({ endpoint: text }) : this.setState({ token: text })
   }
 
   // Clear data when click in the inputs fields
@@ -195,7 +188,6 @@ class App extends Component {
         this.resetButtons('v2')
         let url = v2Url + endpoint
         url.indexOf('?') === -1 ? (url += '?testing') : (url += '&testing')
-        console.log(url)
 
         sendReq({ url, token })
           .then(result => {
@@ -236,7 +228,6 @@ class App extends Component {
           stage = stage.toLowerCase().replace('_', '-')
           if (url.indexOf('?') === -1) {
             url += `?stage=${stage}`
-            console.log(url)
           } else {
             url += `&stage=${stage}`
           }
@@ -299,7 +290,6 @@ class App extends Component {
   onChangeValue = event => {
     const id = event.target.id
     const input = event.target.value
-    console.log(input)
     this.resetButtons('all')
     if (id === 'method') {
       this.setState({
@@ -466,11 +456,7 @@ class App extends Component {
         <div className="jumbotron">
           <h1 className="title">Migration Testing</h1>
           <br />
-          <Method
-            onChangeValue={this.onChangeValue}
-            stages={stageEnvs}
-            currentStage={stage}
-          />
+          <Method onChangeValue={this.onChangeValue} stages={stageEnvs} currentStage={stage} />
           <br />
           <Input
             label="Endpoint"

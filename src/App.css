@@ -20,7 +20,7 @@ ul {
 .dropB {
   background-color: #6b787e !important;
   color: #c4dce7 !important;
-  text-align-last:center;
+  text-align-last: center;
 }
 
 /* input */
@@ -89,7 +89,7 @@ ul {
   width: 48%;
 }
 
-.taCont textarea{
+.taCont textarea {
   overflow: hidden;
 }
 
