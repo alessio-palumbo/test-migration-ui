@@ -1,8 +1,8 @@
-import './App.css';
+import './App.css'
 import './bootstrap-4.0.0-beta.2-dist/css/bootstrap.css'
 
 import jsonlint from 'jsonlint-mod'
-import React, { Component } from 'react';
+import React, { Component } from 'react'
 
 import { Apis } from './components/Apis'
 import { Diff } from './components/Diff'
@@ -13,18 +13,9 @@ import { sendReq } from './components/Request'
 import jdd from './libs/jdd'
 
 const stages = {
-  "PG_1": [
-    process.env.REACT_APP_V2_PG_1,
-    process.env.REACT_APP_V3_PG_2
-  ],
-  "PG_2": [
-    process.env.REACT_APP_V2_PG_2,
-    process.env.REACT_APP_V3_PG_2
-  ],
-  "STG": [
-    process.env.REACT_APP_V2_STG,
-    process.env.REACT_APP_V3_PG_2
-  ],
+  PG_1: [process.env.REACT_APP_V2_PG_1, process.env.REACT_APP_V3_PG_2],
+  PG_2: [process.env.REACT_APP_V2_PG_2, process.env.REACT_APP_V3_PG_2],
+  STG: [process.env.REACT_APP_V2_STG, process.env.REACT_APP_V3_PG_2]
 }
 
 class App extends Component {
@@ -38,11 +29,7 @@ class App extends Component {
     v2JsonCopied: 'JSON',
     v3JsonCopied: 'JSON',
     method: 'GET',
-    stageEnvs: [
-      "PG_1",
-      "PG_2",
-      "STG"
-    ],
+    stageEnvs: ['PG_1', 'PG_2', 'STG'],
     stage: 'PG_2',
     v2Res: '',
     v3Res: '',
@@ -78,35 +65,39 @@ class App extends Component {
     // Check if query params can be parsed (for request coming from slack)
     const query = window.location.search.substring(1)
     if (query) {
-      const endpoint = this.getQueryParam("endpoint")
-      const token = this.getQueryParam("token")
-      let stage = this.getQueryParam("stage")
+      const endpoint = this.getQueryParam('endpoint')
+      const token = this.getQueryParam('token')
+      let stage = this.getQueryParam('stage')
       if (stage) {
-        stage = stage.toUpperCase().replace("-", "_")
+        stage = stage.toUpperCase().replace('-', '_')
       } else {
         stage = this.state.stage
       }
 
-      this.setState({
-        endpoint: endpoint,
-        token: token,
-        stage: stage,
-        v2Url: stages[stage][0],
-        v3Url: stages[stage][1]
-      }, function () {
-        Promise.all([this.onSendReq('v2'), this.onSendReq('v3')])
-          .then(() => {
-            this.setState({
-              show: !this.state.show
-            }, this.onCompare())
+      this.setState(
+        {
+          endpoint: endpoint,
+          token: token,
+          stage: stage,
+          v2Url: stages[stage][0],
+          v3Url: stages[stage][1]
+        },
+        function() {
+          Promise.all([this.onSendReq('v2'), this.onSendReq('v3')]).then(() => {
+            this.setState(
+              {
+                show: !this.state.show
+              },
+              this.onCompare()
+            )
           })
-      })
+        }
+      )
     }
-
   }
 
   // Reset buttons text to default
-  resetButtons = (api) => {
+  resetButtons = api => {
     if (api === 'v2') {
       this.setState({
         v2Copied: 'Copy Curl',
@@ -132,17 +123,17 @@ class App extends Component {
   }
 
   // Update text in input fields
-  onChangeInputField = (event) => {
+  onChangeInputField = event => {
     const input = event.target.name
     const text = event.target.value.trim()
 
-    input === 'endpoint' ?
-      (this.setState({ endpoint: text }))
-      : (this.setState({ token: text }))
+    input === 'endpoint'
+      ? this.setState({ endpoint: text })
+      : this.setState({ token: text })
   }
 
   // Clear data when click in the inputs fields
-  onClearInput = (event) => {
+  onClearInput = event => {
     const input = event.target
     if (input.name === 'endpoint') {
       this.setState({
@@ -168,7 +159,7 @@ class App extends Component {
   }
 
   // Copy JSON to clipboard
-  copyToClipboard = (text) => {
+  copyToClipboard = text => {
     const textField = document.createElement('textarea')
     textField.innerText = text
     document.body.appendChild(textField)
@@ -178,7 +169,7 @@ class App extends Component {
   }
 
   // Copy to clipboard
-  onCurlCopy = (itemId) => {
+  onCurlCopy = itemId => {
     const field = document.getElementById(itemId)
     const text = field.textContent
     this.copyToClipboard(text)
@@ -196,21 +187,21 @@ class App extends Component {
   }
 
   // Send http request to api
-  onSendReq = (req) => {
+  onSendReq = req => {
     return new Promise((resolve, reject) => {
       const { v2Url, v3Url, endpoint, token } = this.state
 
       if (req === 'v2') {
         this.resetButtons('v2')
         let url = v2Url + endpoint
-        url.indexOf('?') === -1 ? url += '?testing' : url += '&testing'
+        url.indexOf('?') === -1 ? (url += '?testing') : (url += '&testing')
         console.log(url)
 
         sendReq({ url, token })
           .then(result => {
             // create config for v2 result
-            const v2Config = jdd.createConfig();
-            jdd.formatAndDecorate(v2Config, result);
+            const v2Config = jdd.createConfig()
+            jdd.formatAndDecorate(v2Config, result)
             this.setState({
               v2ResJson: JSON.stringify(result),
               v2Res: v2Config.out
@@ -222,9 +213,9 @@ class App extends Component {
               let eMsg
               if (error.message.indexOf('code') !== -1) {
                 let idx = error.message.indexOf('code') + 5
-                eMsg = error.message.slice(idx, (idx + 3))
+                eMsg = error.message.slice(idx, idx + 3)
               } else {
-                eMsg = "404"
+                eMsg = '404'
               }
               this.setState({
                 v2Res: error,
@@ -242,7 +233,7 @@ class App extends Component {
         // Handle when stage queryParam for v3 testing
         let stage = this.state.stage
         if (stage !== 'PG_2') {
-          stage = stage.toLowerCase().replace("_", "-")
+          stage = stage.toLowerCase().replace('_', '-')
           if (url.indexOf('?') === -1) {
             url += `?stage=${stage}`
             console.log(url)
@@ -255,8 +246,8 @@ class App extends Component {
         sendReq({ url, token })
           .then(result => {
             // create config for v3 result
-            const v3Config = jdd.createConfig();
-            jdd.formatAndDecorate(v3Config, result);
+            const v3Config = jdd.createConfig()
+            jdd.formatAndDecorate(v3Config, result)
             this.setState({
               v3ResJson: JSON.stringify(result),
               v3Res: v3Config.out
@@ -268,9 +259,9 @@ class App extends Component {
               let eMsg
               if (error.message.indexOf('code') !== -1) {
                 let idx = error.message.indexOf('code') + 5
-                eMsg = error.message.slice(idx, (idx + 3))
+                eMsg = error.message.slice(idx, idx + 3)
               } else {
-                eMsg = "404"
+                eMsg = '404'
               }
               this.setState({
                 v3Res: error,
@@ -305,11 +296,11 @@ class App extends Component {
   }
 
   // Change value of method and stage
-  onChangeValue = (event) => {
+  onChangeValue = event => {
     const id = event.target.id
     const input = event.target.value
     console.log(input)
-    this.resetButtons("all")
+    this.resetButtons('all')
     if (id === 'method') {
       this.setState({
         method: input
@@ -324,7 +315,7 @@ class App extends Component {
   }
 
   // Update res in textarea
-  onUpdateRes = (event) => {
+  onUpdateRes = event => {
     const ta = event.target.id
     const input = event.target.value
     if (ta === 'textarealeft') {
@@ -377,7 +368,7 @@ class App extends Component {
       let msg = e.message
       msg = msg.substring(0, msg.indexOf(':'))
       if (msg.indexOf('Parse error') !== -1) {
-        let line = msg.substring((msg.indexOf('line') + 5))
+        let line = msg.substring(msg.indexOf('line') + 5)
         this.setState({
           parseError: {
             msg: msg,
@@ -405,14 +396,14 @@ class App extends Component {
     }
 
     // create config
-    const v2Config = jdd.createConfig();
-    jdd.formatAndDecorate(v2Config, v2Raw);
-    const v3Config = jdd.createConfig();
-    jdd.formatAndDecorate(v3Config, v3Raw);
+    const v2Config = jdd.createConfig()
+    jdd.formatAndDecorate(v2Config, v2Raw)
+    const v3Config = jdd.createConfig()
+    jdd.formatAndDecorate(v3Config, v3Raw)
 
     // Find differences values and store them in jdd.diffs
     jdd.diffs = []
-    jdd.diffVal(v2Raw, v2Config, v3Raw, v3Config);
+    jdd.diffVal(v2Raw, v2Config, v3Raw, v3Config)
 
     // Store the error lines and type
     let itemsL = v2Res.split('\n').length - 1
@@ -429,7 +420,7 @@ class App extends Component {
     })
 
     // Write report
-    let report;
+    let report
     if (diffNum === 0) {
       report = 'Yey! No differences found!'
     } else {
@@ -471,9 +462,9 @@ class App extends Component {
     } = this.state
 
     return (
-      <div className='App'>
-        <div className='jumbotron'>
-          <h1 className='title'>Migration Testing</h1>
+      <div className="App">
+        <div className="jumbotron">
+          <h1 className="title">Migration Testing</h1>
           <br />
           <Method
             onChangeValue={this.onChangeValue}
@@ -482,8 +473,8 @@ class App extends Component {
           />
           <br />
           <Input
-            label='Endpoint'
-            name='endpoint'
+            label="Endpoint"
+            name="endpoint"
             value={endpoint}
             onChangeField={this.onChangeInputField}
             onClearField={this.onClearInput}
@@ -529,7 +520,8 @@ class App extends Component {
           idxErrRight={parseError.side === 'right' && parseError.line}
           diffLinesL={diffLinesL}
           diffLinesR={diffLinesR}
-          report={report} diffNum={diffNum}
+          report={report}
+          diffNum={diffNum}
         />
         <Footer />
       </div>
@@ -537,4 +529,4 @@ class App extends Component {
   }
 }
 
-export default App;
+export default App
