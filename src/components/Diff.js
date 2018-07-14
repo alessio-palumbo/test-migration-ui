@@ -75,7 +75,7 @@ export function Diff({
                 <div className="taCont left d-flex justify-content-around form-group">
                   <Gutter style={`ta-Gutter`} res={v2Res} idxErr={idxErrLeft} />
                   <textarea
-                    spellCheck="false"
+                    data-gramm="false"
                     className="form-control left"
                     onChange={onUpdateRes}
                     id="textarealeft"
@@ -86,7 +86,7 @@ export function Diff({
                 <div className="taCont right d-flex justify-content-around form-group">
                   <Gutter style={`ta-Gutter`} res={v3Res} idxErr={idxErrRight} />
                   <textarea
-                    spellCheck="false"
+                    data-gramm="false"
                     className="form-control right"
                     onChange={onUpdateRes}
                     id="textarearight"
