@@ -20,17 +20,27 @@ const stages = {
 
 class App extends Component {
   state = {
-    v2Url: process.env.REACT_APP_V2_PG_2,
-    v3Url: process.env.REACT_APP_V3_PG_2,
-    endpoint: '',
-    token: '',
-    v2Copied: 'Copy Curl',
-    v3Copied: 'Copy Curl',
-    v2JsonCopied: 'JSON',
-    v3JsonCopied: 'JSON',
+    left: {
+      api: 'left',
+      curlCopied: 'Copy Curl',
+      jsonCopied: 'JSON',
+      config: null,
+      resp: '',
+      respJson: ''
+    },
+    right: {
+      api: 'right',
+      curlCopied: 'Copy Curl',
+      jsonCopied: 'JSON',
+      config: null,
+      resp: '',
+      respJson: ''
+    },
     method: 'GET',
+    endpoint: '',
+    env: '',
     stageEnvs: ['PG_1', 'PG_2', 'STG'],
-    stage: 'PG_2',
+    stage: '',
     v2Res: '',
     v3Res: '',
     v2ResJson: '',
@@ -46,41 +56,30 @@ class App extends Component {
     report: ''
   }
 
-  getQueryParam = key => {
-    const query = window.location.search.substring(1)
-    // Since endpoint can contains multiple query param will split the strinat &token and take the first bit
-    if (key === 'endpoint') {
-      return query.split('&token')[0].substring(9)
-    }
-    const params = query.split('&')
-    let value
-    params.map(param => {
-      let keyValue = param.split('=')
-      if (keyValue[0] === key) return (value = keyValue[1])
-    })
-    return value
-  }
+  fillFromParams() {
+    const query = new URLSearchParams(window.location.search)
+    if (query && query.has('base')) {
+      const base = query.get('base')
+      const hostBase = base.substr(base.indexOf('.') + 1)
 
-  componentDidMount() {
-    // Check if query params can be parsed (for request coming from slack)
-    const query = window.location.search.substring(1)
-    if (query) {
-      const endpoint = this.getQueryParam('endpoint')
-      const token = this.getQueryParam('token')
-      let stage = this.getQueryParam('stage')
-      if (stage) {
-        stage = stage.toUpperCase().replace('-', '_')
-      } else {
-        stage = this.state.stage
-      }
+      let endpoint = query.get('endpoint')
+      endpoint.indexOf('?') === -1 ? (endpoint += '?testing=') : (endpoint += '&testing=')
+
+      const env = query.get('env')
+      const left = this.state.left
+      left.url = `${base}/v2${endpoint}`
+      left.host = `${env}-v2-${hostBase}`
+
+      const right = this.state.right
+      right.url = `${base}${endpoint}stage=${env}`
+      right.host = `${query.get('v3host')}-v3-${hostBase}`
 
       this.setState(
         {
-          endpoint: endpoint,
-          token: token,
-          stage: stage,
-          v2Url: stages[stage][0],
-          v3Url: stages[stage][1]
+          endpoint,
+          env,
+          left,
+          right
         },
         function() {
           Promise.all([this.onSendReq('v2'), this.onSendReq('v3')]).then(() => {
@@ -89,6 +88,11 @@ class App extends Component {
         }
       )
     }
+  }
+
+  componentDidMount() {
+    // Check if query params can be parsed (for request coming from slack)
+    this.fillFromParams()
   }
 
   // Reset buttons text to default
@@ -179,14 +183,45 @@ class App extends Component {
     }
   }
 
+  // processReq = (url, host) => {
+  //   sendReq({ url, host })
+  //     .then(result => {
+  //       // create config for api result
+  //       const config = jdd.createConfig()
+  //       jdd.formatAndDecorate(config, result)
+  //       resolve('Success')
+  //       return [result, v2Config.out]
+  //     })
+  //     .catch(error => {
+  //       if (!error.status) {
+  //         let eMsg
+  //         if (error.message.indexOf('code') !== -1) {
+  //           let idx = error.message.indexOf('code') + 5
+  //           eMsg = error.message.slice(idx, idx + 3)
+  //         } else {
+  //           eMsg = '404'
+  //         }
+  //         this.setState({
+  //           v2Res: error,
+  //           v2JsonCopied: eMsg
+  //         })
+  //         return
+  //       }
+  //       this.setState({
+  //         v2Res: error,
+  //         v2JsonCopied: error.response.status
+  //       })
+  //     })
+  // }
+
   // Send http request to api
   onSendReq = req => {
     return new Promise((resolve, reject) => {
-      const { v2Url, v3Url, endpoint, token } = this.state
+      const { leftUrl, rightUrl, endpoint, token } = this.state
 
       if (req === 'v2') {
         this.resetButtons('v2')
-        let url = v2Url + endpoint
+        let url = leftUrl + endpoint
         url.indexOf('?') === -1 ? (url += '?testing') : (url += '&testing')
 
         sendReq({ url, token })
@@ -221,7 +256,7 @@ class App extends Component {
             })
           })
       } else {
-        let url = v3Url + endpoint
+        let url = rightUrl + endpoint
         // Handle when stage queryParam for v3 testing
         let stage = this.state.stage
         if (stage !== 'PG_2') {
@@ -298,8 +333,8 @@ class App extends Component {
     } else {
       this.setState({
         stage: input,
-        v2Url: stages[input][0],
-        v3Url: stages[input][1]
+        leftUrl: stages[input][0],
+        rightUrl: stages[input][1]
       })
     }
   }
@@ -427,8 +462,8 @@ class App extends Component {
   render() {
     const {
       method,
-      v2Url,
-      v3Url,
+      leftUrl,
+      rightUrl,
       endpoint,
       token,
       v2Copied,
@@ -475,8 +510,8 @@ class App extends Component {
         </div>
         <Apis
           method={method}
-          v2Url={v2Url + endpoint}
-          v3Url={v3Url + endpoint}
+          leftUrl={leftUrl + endpoint}
+          rightUrl={rightUrl + endpoint}
           token={token}
           onCopyCurl={this.onCurlCopy}
           onSendReq={this.onSendReq}
