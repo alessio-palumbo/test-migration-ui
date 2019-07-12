@@ -1,52 +1,36 @@
-import React from "react";
+import React from 'react'
+import { Api } from './Api'
 
 export function Apis({
-  method,
+  leftApi,
+  rightApi,
   token,
-  v2Url,
-  v3Url,
+  endpoint,
   onCopyCurl,
   onSendReq,
-  onCopyRes,
-  btnTextV2,
-  btnTextV3,
-  btnJsonV2,
-  btnJsonV3,
-  v2Res,
-  v3Res,
-  v2ResJson,
-  v3ResJson
+  onCopyRes
 }) {
+  const lid = leftApi.id
+  const rid = rightApi.id
+
   return (
     <div className="d-flex justify-content-around api-container">
-      <div className="api">
-        <h5>V2</h5>
-        <p id="v2" className="d-none">curl -H "Accept: application/json" -H "Authorization: Bearer {token}" "{v2Url}"</p>
-        <button onClick={() => onCopyCurl("v2")} className="btn btn-sm btn-custom">{btnTextV2}</button>
-        <button onClick={() => onSendReq("v2")} className="btn btn-sm btn-custom btn-custom-2">Send Request</button>
-        {
-          v2Res === "" ?
-            <button className="btn btn-sm btn-custom btn-custom-4">JSON</button>
-            : <button onClick={() => onCopyRes("v2", v2ResJson)}
-              className={`btn btn-sm btn-custom ${(btnJsonV2 === "JSON" || btnJsonV2 === "Copied!") ?
-                "btn-custom-3" : "btn-danger"}`}>{btnJsonV2}</button>
-
-        }
-      </div>
-      <div className="api">
-        <h5>V3</h5>
-        <p id="v3" className="d-none">curl -H "Accept: application/json" -H "Authorization: Bearer {token}" "{v3Url}"</p>
-        <button onClick={() => onCopyCurl("v3")} className="btn btn-sm btn-custom">{btnTextV3}</button>
-        <button onClick={() => onSendReq(v3Res)} className="btn btn-sm btn-custom btn-custom-2">Send Request</button>
-        {
-          v3Res === "" ?
-            <button className="btn btn-sm btn-custom btn-custom-4">JSON</button>
-            : <button onClick={() => onCopyRes("v3", v3ResJson)}
-              className={`btn btn-sm btn-custom ${(btnJsonV3 === "JSON" || btnJsonV3 === "Copied!") ?
-                "btn-custom-3" : "btn-danger"}`}>{btnJsonV3}</button>
-
-        }
-      </div>
+      <Api
+        api={leftApi}
+        token={token}
+        endpoint={endpoint}
+        onCopyCurl={() => onCopyCurl(lid)}
+        onSendReq={() => onSendReq(lid)}
+        onCopyRes={() => onCopyRes(lid, leftApi.respJson)}
+      />
+      <Api
+        api={rightApi}
+        token={token}
+        endpoint={endpoint}
+        onCopyCurl={() => onCopyCurl(rid)}
+        onSendReq={() => onSendReq(rid)}
+        onCopyRes={() => onCopyRes(rid, rightApi.respJson)}
+      />
     </div>
   )
 }

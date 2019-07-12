@@ -7,30 +7,37 @@ import React, { Component } from 'react'
 import { Apis } from './components/Apis'
 import { Diff } from './components/Diff'
 import { Footer } from './components/Footer'
-import { Input } from './components/Input'
-import { Method } from './components/Method'
+import { ReqForm } from './components/ReqForm'
 import { sendReq } from './components/Request'
 import jdd from './libs/jdd'
 
-const stages = {
-  PG_1: [process.env.REACT_APP_V2_PG_1, process.env.REACT_APP_V3_PG_2],
-  PG_2: [process.env.REACT_APP_V2_PG_2, process.env.REACT_APP_V3_PG_2],
-  STG: [process.env.REACT_APP_V2_STG, process.env.REACT_APP_V3_PG_2]
-}
-
 class App extends Component {
   state = {
-    v2Url: process.env.REACT_APP_V2_PG_2,
-    v3Url: process.env.REACT_APP_V3_PG_2,
+    left: {
+      id: 'left',
+      label: 'left',
+      curlBtn: 'Copy Curl',
+      jsonBtn: 'JSON',
+      config: null,
+      resp: '',
+      respJson: ''
+    },
+    right: {
+      id: 'right',
+      label: 'right',
+      curlBtn: 'Copy Curl',
+      jsonBtn: 'JSON',
+      config: null,
+      resp: '',
+      respJson: ''
+    },
+    method: 'GET',
     endpoint: '',
     token: '',
-    v2Copied: 'Copy Curl',
-    v3Copied: 'Copy Curl',
-    v2JsonCopied: 'JSON',
-    v3JsonCopied: 'JSON',
-    method: 'GET',
+    env: '',
+    pid: '',
     stageEnvs: ['PG_1', 'PG_2', 'STG'],
-    stage: 'PG_2',
+    stage: '',
     v2Res: '',
     v3Res: '',
     v2ResJson: '',
@@ -46,75 +53,78 @@ class App extends Component {
     report: ''
   }
 
-  getQueryParam = key => {
-    const query = window.location.search.substring(1)
-    // Since endpoint can contains multiple query param will split the strinat &token and take the first bit
-    if (key === 'endpoint') {
-      return query.split('&token')[0].substring(9)
-    }
-    const params = query.split('&')
-    let value
-    params.map(param => {
-      let keyValue = param.split('=')
-      if (keyValue[0] === key) return (value = keyValue[1])
-    })
-    return value
-  }
+  fillFromParams() {
+    const query = new URLSearchParams(window.location.search)
+    if (query && query.has('base')) {
+      const base = query.get('base')
+      const hostBase = base.substr(base.indexOf('.') + 1)
+      const endpoint = query.get('endpoint')
+      const env = query.get('env')
+      const pid = query.get('pid')
 
-  componentDidMount() {
-    // Check if query params can be parsed (for request coming from slack)
-    const query = window.location.search.substring(1)
-    if (query) {
-      const endpoint = this.getQueryParam('endpoint')
-      const token = this.getQueryParam('token')
-      let stage = this.getQueryParam('stage')
-      if (stage) {
-        stage = stage.toUpperCase().replace('-', '_')
-      } else {
-        stage = this.state.stage
-      }
+      let testing = ''
+      endpoint.indexOf('?') === -1 ? (testing = '?testing=') : (testing += '&testing=')
+
+      const left = this.state.left
+      left.url = `${base}/v2${endpoint}${testing}`
+      left.host = `${env}-v2-${hostBase}`
+      left.pid = pid
+
+      const right = this.state.right
+      right.url = `${base}${endpoint}${testing}stage=${env}`
+      right.host = `${query.get('v3host')}-v3-${hostBase}`
+      right.pid = pid
 
       this.setState(
         {
-          endpoint: endpoint,
-          token: token,
-          stage: stage,
-          v2Url: stages[stage][0],
-          v3Url: stages[stage][1]
+          endpoint,
+          env,
+          pid,
+          left,
+          right
         },
-        function() {
-          Promise.all([this.onSendReq('v2'), this.onSendReq('v3')]).then(() => {
+        function () {
+          Promise.all([this.onSendReq('left'), this.onSendReq('right')]).then(() => {
             this.setState({ show: !this.state.show }, this.onCompare())
           })
         }
       )
+      return true
+    }
+    return false
+  }
+
+  componentDidMount() {
+    // Check if it's a custom request coming from slack, otherwise retrieve last used fields
+    if (!this.fillFromParams()) {
+      const lastEndpoint = localStorage.getItem('endpoint')
+      const lastToken = localStorage.getItem('token')
+
+      this.setState({
+        endpoint: lastEndpoint,
+        token: lastToken
+      })
     }
   }
 
   // Reset buttons text to default
   resetButtons = api => {
-    if (api === 'v2') {
-      this.setState({
-        v2Copied: 'Copy Curl',
-        v2JsonCopied: 'JSON',
-        v2Res: ''
+    this.setState(prevState => {
+      const updateApi = {
+        ...prevState[api],
+        curlBtn: 'Copy Curl',
+        jsonBtn: 'JSON',
+        resp: ''
+      }
+      return ({
+        [api]: updateApi
       })
-    } else if (api === 'v3') {
-      this.setState({
-        v3Copied: 'Copy Curl',
-        v3JsonCopied: 'JSON',
-        v3Res: ''
-      })
-    } else {
-      this.setState({
-        v2Copied: 'Copy Curl',
-        v2JsonCopied: 'JSON',
-        v2Res: '',
-        v3Copied: 'Copy Curl',
-        v3JsonCopied: 'JSON',
-        v3Res: ''
-      })
-    }
+    })
+  }
+
+  resetAllButtons() {
+    this.resetButtons('left')
+    this.resetButtons('right')
   }
 
   // Update text in input fields
@@ -122,33 +132,16 @@ class App extends Component {
     const input = event.target.name
     const text = event.target.value.trim()
 
-    input === 'endpoint' ? this.setState({ endpoint: text }) : this.setState({ token: text })
+    localStorage.setItem(input, text)
+    this.setState({ [input]: text })
   }
 
   // Clear data when click in the inputs fields
   onClearInput = event => {
-    const input = event.target
-    if (input.name === 'endpoint') {
-      this.setState({
-        endpoint: '',
-        v2Copied: 'Copy Curl',
-        v3Copied: 'Copy Curl',
-        v2JsonCopied: 'JSON',
-        v3JsonCopied: 'JSON',
-        v2Res: '',
-        v3Res: ''
-      })
-    } else {
-      this.setState({
-        token: '',
-        v2Copied: 'Copy Curl',
-        v3Copied: 'Copy Curl',
-        v2JsonCopied: 'JSON',
-        v3JsonCopied: 'JSON',
-        v2Res: '',
-        v3Res: ''
-      })
-    }
+    const input = event.target.name
+
+    this.resetAllButtons()
+    this.setState({ [input]: '' })
   }
 
   // Copy JSON to clipboard
@@ -161,147 +154,93 @@ class App extends Component {
     textField.remove()
   }
 
-  // Copy to clipboard
-  onCurlCopy = itemId => {
-    const field = document.getElementById(itemId)
-    const text = field.textContent
-    this.copyToClipboard(text)
-    if (itemId === 'v2') {
-      this.setState({
-        v2Copied: 'Copied!',
-        v3Copied: 'Copy'
+  updateBtnMessage = (api, btn, msg) => {
+    let reset = api === 'left' ? 'right' : 'left'
+    this.resetButtons(reset)
+    this.setState(prevState => {
+      const updateBtnLabel = {
+        ...prevState[api],
+        [btn]: msg
+      }
+
+      return ({
+        [api]: updateBtnLabel
       })
-    } else {
-      this.setState({
-        v3Copied: 'Copied!',
-        v2Copied: 'Copy'
-      })
-    }
+    })
   }
 
-  // Send http request to api
-  onSendReq = req => {
-    return new Promise((resolve, reject) => {
-      const { v2Url, v3Url, endpoint, token } = this.state
+  // Copy to clipboard
+  onCurlCopy = apiId => {
+    const field = document.getElementById(apiId)
+    const text = field.textContent
+    this.copyToClipboard(text)
 
-      if (req === 'v2') {
-        this.resetButtons('v2')
-        let url = v2Url + endpoint
-        url.indexOf('?') === -1 ? (url += '?testing') : (url += '&testing')
-
-        sendReq({ url, token })
-          .then(result => {
-            // create config for v2 result
-            const v2Config = jdd.createConfig()
-            jdd.formatAndDecorate(v2Config, result)
-            this.setState({
-              v2ResJson: JSON.stringify(result),
-              v2Res: v2Config.out
-            })
-            resolve('Success')
-          })
-          .catch(error => {
-            if (!error.status) {
-              let eMsg
-              if (error.message.indexOf('code') !== -1) {
-                let idx = error.message.indexOf('code') + 5
-                eMsg = error.message.slice(idx, idx + 3)
-              } else {
-                eMsg = '404'
-              }
-              this.setState({
-                v2Res: error,
-                v2JsonCopied: eMsg
-              })
-              return
-            }
-            this.setState({
-              v2Res: error,
-              v2JsonCopied: error.response.status
-            })
-          })
-      } else {
-        let url = v3Url + endpoint
-        // Handle when stage queryParam for v3 testing
-        let stage = this.state.stage
-        if (stage !== 'PG_2') {
-          stage = stage.toLowerCase().replace('_', '-')
-          if (url.indexOf('?') === -1) {
-            url += `?stage=${stage}`
-          } else {
-            url += `&stage=${stage}`
-          }
-        }
-        this.resetButtons('v3')
-
-        sendReq({ url, token })
-          .then(result => {
-            // create config for v3 result
-            const v3Config = jdd.createConfig()
-            jdd.formatAndDecorate(v3Config, result)
-            this.setState({
-              v3ResJson: JSON.stringify(result),
-              v3Res: v3Config.out
-            })
-            resolve('Success')
-          })
-          .catch(error => {
-            if (!error.status) {
-              let eMsg
-              if (error.message.indexOf('code') !== -1) {
-                let idx = error.message.indexOf('code') + 5
-                eMsg = error.message.slice(idx, idx + 3)
-              } else {
-                eMsg = '404'
-              }
-              this.setState({
-                v3Res: error,
-                v3JsonCopied: eMsg
-              })
-              return
-            }
-            this.setState({
-              v3Res: error,
-              v3JsonCopied: error.response.status
-            })
-          })
-      }
-    })
+    this.updateBtnMessage(apiId, 'curlBtn', 'Copied!')
   }
 
   // Copy JSON response to clipboard
   onCopyRes = (api, res) => {
-    if (api === 'v2') {
-      this.copyToClipboard(res)
-      this.setState({
-        v2JsonCopied: 'Copied!',
-        v3JsonCopied: 'JSON'
-      })
-    } else {
-      this.copyToClipboard(res)
-      this.setState({
-        v3JsonCopied: 'Copied!',
-        v2JsonCopied: 'JSON'
-      })
-    }
+    this.copyToClipboard(res)
+    this.updateBtnMessage(api, 'jsonBtn', 'Copied!')
+  }
+
+  // Send http request to api
+  onSendReq = api => {
+    return new Promise((resolve, reject) => {
+      this.resetButtons(api)
+      const { url, host, pid } = this.state[api]
+      const { endpoint, token } = this.state
+
+      sendReq({ url, host, pid, endpoint, token })
+        .then(result => {
+          // create config for v2 result
+          const config = jdd.createConfig()
+          jdd.formatAndDecorate(config, result)
+          this.setState(prevState => {
+            const updatedApi = {
+              ...prevState[api],
+              resp: config.out,
+              respJson: JSON.stringify(result),
+            }
+            return ({
+              [api]: updatedApi
+            })
+          })
+          resolve('Success')
+        })
+        .catch(error => {
+          this.setState(prevState => {
+            const updateApiErr = {
+              ...prevState[api],
+              resp: error
+            }
+
+            if (!error.status) {
+              updateApiErr.jsonBtn = '404'
+
+              if (error.message.indexOf('code') !== -1) {
+                let idx = error.message.indexOf('code') + 5
+                updateApiErr.jsonBtn = error.message.slice(idx, idx + 3)
+              }
+            } else {
+              updateApiErr.jsonBtn = error.response.status
+            }
+
+            return ({
+              [api]: updateApiErr
+            })
+          })
+        })
+    })
   }
 
   // Change value of method and stage
-  onChangeValue = event => {
-    const id = event.target.id
-    const input = event.target.value
-    this.resetButtons('all')
-    if (id === 'method') {
-      this.setState({
-        method: input
-      })
-    } else {
-      this.setState({
-        stage: input,
-        v2Url: stages[input][0],
-        v3Url: stages[input][1]
-      })
-    }
+  onChangeMethod = event => {
+    this.resetAllButtons()
+
+    this.setState({
+      method: event.target.value
+    })
   }
 
   // Update res in textarea
@@ -426,17 +365,12 @@ class App extends Component {
 
   render() {
     const {
-      method,
-      v2Url,
-      v3Url,
-      endpoint,
+      left,
+      right,
       token,
-      v2Copied,
-      v3Copied,
-      v2JsonCopied,
-      v3JsonCopied,
-      v2Res,
-      v3Res,
+      endpoint,
+      env,
+      pid,
       show,
       btnCompText,
       compared,
@@ -444,11 +378,7 @@ class App extends Component {
       diffLinesL,
       diffLinesR,
       report,
-      diffNum,
-      v2ResJson,
-      v3ResJson,
-      stageEnvs,
-      stage
+      diffNum
     } = this.state
 
     return (
@@ -456,46 +386,31 @@ class App extends Component {
         <div className="jumbotron">
           <h1 className="title">Migration Testing</h1>
           <br />
-          <Method onChangeValue={this.onChangeValue} stages={stageEnvs} currentStage={stage} />
-          <br />
-          <Input
-            label="Endpoint"
-            name="endpoint"
-            value={endpoint}
+          <ReqForm
+            env={env}
+            endpoint={endpoint}
+            token={token}
+            pid={pid}
             onChangeField={this.onChangeInputField}
             onClearField={this.onClearInput}
-          />
-          <Input
-            label="Token"
-            name="token"
-            value={token}
-            onChangeField={this.onChangeInputField}
-            onClearField={this.onClearInput}
+            onChangeMethod={this.onChangeMethod}
           />
         </div>
         <Apis
-          method={method}
-          v2Url={v2Url + endpoint}
-          v3Url={v3Url + endpoint}
+          leftApi={left}
+          rightApi={right}
           token={token}
+          endpoint={endpoint}
           onCopyCurl={this.onCurlCopy}
           onSendReq={this.onSendReq}
           onCopyRes={this.onCopyRes}
-          btnTextV2={v2Copied}
-          btnTextV3={v3Copied}
-          btnJsonV2={v2JsonCopied}
-          btnJsonV3={v3JsonCopied}
-          v2ResJson={v2ResJson}
-          v3ResJson={v3ResJson}
-          v2Res={v2Res}
-          v3Res={v3Res}
         />
         <br />
         <Diff
           showDiffs={this.onShowDiffs}
           show={show}
-          v2Res={v2Res}
-          v3Res={v3Res}
+          leftResp={left.resp}
+          rightResp={right.resp}
           onCompare={this.onCompare}
           onUpdateRes={this.onUpdateRes}
           btnCompText={btnCompText}
