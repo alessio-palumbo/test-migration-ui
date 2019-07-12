@@ -63,16 +63,20 @@ class App extends Component {
       const hostBase = base.substr(base.indexOf('.') + 1)
       const endpoint = query.get('endpoint')
       const env = query.get('env')
+      const pid = query.get('pid')
+
       let testing = ''
       endpoint.indexOf('?') === -1 ? (testing = '?testing=') : (testing += '&testing=')
 
       const left = this.state.left
       left.url = `${base}/v2${endpoint}${testing}`
       left.host = `${env}-v2-${hostBase}`
+      left.pid = pid
 
       const right = this.state.right
       right.url = `${base}${endpoint}${testing}stage=${env}`
       right.host = `${query.get('v3host')}-v3-${hostBase}`
+      right.pid = pid
 
       this.setState(
         {
@@ -81,7 +85,7 @@ class App extends Component {
           left,
           right
         },
-        function() {
+        function () {
           Promise.all([this.onSendReq('left'), this.onSendReq('right')]).then(() => {
             this.setState({ show: !this.state.show }, this.onCompare())
           })
@@ -98,7 +102,8 @@ class App extends Component {
   // Reset buttons text to default
   resetButtons = api => {
     this.setState(prevState => {
-      const updateApi = {...prevState[api],
+      const updateApi = {
+        ...prevState[api],
         curlCopied: 'Copy Curl',
         jsonCopied: 'JSON',
         resp: ''
@@ -176,124 +181,52 @@ class App extends Component {
     }
   }
 
-  // processReq = (url, host) => {
-  //   sendReq({ url, host })
-  //     .then(result => {
-  //       // create config for api result
-  //       const config = jdd.createConfig()
-  //       jdd.formatAndDecorate(config, result)
-  //       resolve('Success')
-  //       return [result, v2Config.out]
-  //     })
-  //     .catch(error => {
-  //       if (!error.status) {
-  //         let eMsg
-  //         if (error.message.indexOf('code') !== -1) {
-  //           let idx = error.message.indexOf('code') + 5
-  //           eMsg = error.message.slice(idx, idx + 3)
-  //         } else {
-  //           eMsg = '404'
-  //         }
-  //         this.setState({
-  //           v2Res: error,
-  //           v2JsonCopied: eMsg
-  //         })
-  //         return
-  //       }
-  //       this.setState({
-  //         v2Res: error,
-  //         v2JsonCopied: error.response.status
-  //       })
-  //     })
-  // }
-
   // Send http request to api
-  onSendReq = req => {
+  onSendReq = api => {
     return new Promise((resolve, reject) => {
-      const { leftUrl, rightUrl, endpoint, token } = this.state
+      this.resetButtons(api)
+      const { url, host, pid, token } = this.state[api]
 
-      if (req === 'v2') {
-        this.resetButtons('v2')
-        let url = leftUrl + endpoint
-        url.indexOf('?') === -1 ? (url += '?testing') : (url += '&testing')
-
-        sendReq({ url, token })
-          .then(result => {
-            // create config for v2 result
-            const v2Config = jdd.createConfig()
-            jdd.formatAndDecorate(v2Config, result)
-            this.setState({
-              v2ResJson: JSON.stringify(result),
-              v2Res: v2Config.out
+      sendReq({ url, host, pid, token })
+        .then(result => {
+          // create config for v2 result
+          const config = jdd.createConfig()
+          jdd.formatAndDecorate(config, result)
+          this.setState(prevState => {
+            const updatedApi = {
+              ...prevState[api],
+              res: config.out,
+              resJson: JSON.stringify(result),
+            }
+            return ({
+              [api]: updatedApi
             })
-            resolve('Success')
           })
-          .catch(error => {
+          resolve('Success')
+        })
+        .catch(error => {
+          this.setState(prevState => {
+            const updateApiErr = {
+              ...prevState[api],
+              resp: error
+            }
+
             if (!error.status) {
-              let eMsg
+              updateApiErr.jsonCopied = '404'
+
               if (error.message.indexOf('code') !== -1) {
                 let idx = error.message.indexOf('code') + 5
-                eMsg = error.message.slice(idx, idx + 3)
-              } else {
-                eMsg = '404'
+                updateApiErr.jsonCopied = error.message.slice(idx, idx + 3)
               }
-              this.setState({
-                v2Res: error,
-                v2JsonCopied: eMsg
-              })
-              return
+            } else {
+              updateApiErr.jsonCopied = error.response.status
             }
-            this.setState({
-              v2Res: error,
-              v2JsonCopied: error.response.status
-            })
-          })
-      } else {
-        let url = rightUrl + endpoint
-        // Handle when stage queryParam for v3 testing
-        let stage = this.state.stage
-        if (stage !== 'PG_2') {
-          stage = stage.toLowerCase().replace('_', '-')
-          if (url.indexOf('?') === -1) {
-            url += `?stage=${stage}`
-          } else {
-            url += `&stage=${stage}`
-          }
-        }
-        this.resetButtons('v3')
 
-        sendReq({ url, token })
-          .then(result => {
-            // create config for v3 result
-            const v3Config = jdd.createConfig()
-            jdd.formatAndDecorate(v3Config, result)
-            this.setState({
-              v3ResJson: JSON.stringify(result),
-              v3Res: v3Config.out
-            })
-            resolve('Success')
-          })
-          .catch(error => {
-            if (!error.status) {
-              let eMsg
-              if (error.message.indexOf('code') !== -1) {
-                let idx = error.message.indexOf('code') + 5
-                eMsg = error.message.slice(idx, idx + 3)
-              } else {
-                eMsg = '404'
-              }
-              this.setState({
-                v3Res: error,
-                v3JsonCopied: eMsg
-              })
-              return
-            }
-            this.setState({
-              v3Res: error,
-              v3JsonCopied: error.response.status
+            return ({
+              [api]: updateApiErr
             })
           })
-      }
+        })
     })
   }
 

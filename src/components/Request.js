@@ -1,14 +1,36 @@
 import axios from 'axios'
 
-export function sendReq({ url, host }) {
-  return axios
-    .get(url, {
+export function sendReq({ url, host, pid, token }) {
+  if (token) {
+    console.log('is token', token)
+    return sendTokenReq({ url, token })
+  } else {
+    console.log('is pid', url, host, pid)
+    return sendCustomReq({ url, host, pid })
+  }
+}
+
+async function sendTokenReq(props) {
+  const response = await axios
+    .get(props.url, {
       headers: {
         Accept: 'application/json',
-        Host: host
+        Authorization: `Bearer ${props.token}`
       }
-    })
-    .then(response => {
-      return response.data
-    })
+    });
+  return response.data;
+}
+
+async function sendCustomReq(props) {
+  console.log(props)
+  const response = await axios
+    .get(props.url, {
+      headers: {
+        Accept: 'application/json',
+        'Access-Control-Allow-Origin': '*',
+        'X-Host-Override': props.host,
+        'OSS-PrincipalId': props.pid
+      }
+    });
+  return response.data;
 }
