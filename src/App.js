@@ -61,17 +61,17 @@ class App extends Component {
     if (query && query.has('base')) {
       const base = query.get('base')
       const hostBase = base.substr(base.indexOf('.') + 1)
-
-      let endpoint = query.get('endpoint')
-      endpoint.indexOf('?') === -1 ? (endpoint += '?testing=') : (endpoint += '&testing=')
-
+      const endpoint = query.get('endpoint')
       const env = query.get('env')
+      let testing = ''
+      endpoint.indexOf('?') === -1 ? (testing = '?testing=') : (testing += '&testing=')
+
       const left = this.state.left
-      left.url = `${base}/v2${endpoint}`
+      left.url = `${base}/v2${endpoint}${testing}`
       left.host = `${env}-v2-${hostBase}`
 
       const right = this.state.right
-      right.url = `${base}${endpoint}stage=${env}`
+      right.url = `${base}${endpoint}${testing}stage=${env}`
       right.host = `${query.get('v3host')}-v3-${hostBase}`
 
       this.setState(
@@ -82,7 +82,7 @@ class App extends Component {
           right
         },
         function() {
-          Promise.all([this.onSendReq('v2'), this.onSendReq('v3')]).then(() => {
+          Promise.all([this.onSendReq('left'), this.onSendReq('right')]).then(() => {
             this.setState({ show: !this.state.show }, this.onCompare())
           })
         }
@@ -97,28 +97,21 @@ class App extends Component {
 
   // Reset buttons text to default
   resetButtons = api => {
-    if (api === 'v2') {
-      this.setState({
-        v2Copied: 'Copy Curl',
-        v2JsonCopied: 'JSON',
-        v2Res: ''
+    this.setState(prevState => {
+      const updateApi = {...prevState[api],
+        curlCopied: 'Copy Curl',
+        jsonCopied: 'JSON',
+        resp: ''
+      }
+      return ({
+        [api]: updateApi
       })
-    } else if (api === 'v3') {
-      this.setState({
-        v3Copied: 'Copy Curl',
-        v3JsonCopied: 'JSON',
-        v3Res: ''
-      })
-    } else {
-      this.setState({
-        v2Copied: 'Copy Curl',
-        v2JsonCopied: 'JSON',
-        v2Res: '',
-        v3Copied: 'Copy Curl',
-        v3JsonCopied: 'JSON',
-        v3Res: ''
-      })
-    }
+    })
+  }
+
+  resetAllButtons() {
+    this.resetButtons('left')
+    this.resetButtons('right')
   }
 
   // Update text in input fields
@@ -325,7 +318,7 @@ class App extends Component {
   onChangeValue = event => {
     const id = event.target.id
     const input = event.target.value
-    this.resetButtons('all')
+    this.resetAllButtons()
     if (id === 'method') {
       this.setState({
         method: input
