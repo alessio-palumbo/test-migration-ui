@@ -9,14 +9,14 @@ export function Api({
   onCopyRes
 }) {
 
-  const { id, curlBtn, jsonBtn, resp, respJson, url, host, pid } = api
+  const { id, label, curlBtn, jsonBtn, resp, url, host, pid } = api
   const credentials = token ? `-H 'Authorization: Bearer ${token}'` : `-H 'Host: ${host}' -H 'OSS-PrincipalId: ${pid}`
   const curl = `curl -H 'Accept: application/json' ${credentials} ${url || endpoint}`
 
   return (
     <div className="api">
-      <h5>{api.label}</h5>
-      <p id={api.id} className="d-none">{curl}</p>
+      <h5>{label}</h5>
+      <p id={id} className="d-none">{curl}</p>
       <button onClick={onCopyCurl} className="btn btn-sm btn-custom">{curlBtn}</button>
       <button onClick={onSendReq} className="btn btn-sm btn-custom btn-custom-2">Send Request</button>
       {

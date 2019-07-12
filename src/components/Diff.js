@@ -1,11 +1,11 @@
 import React from 'react'
-import { CodeBlock } from './CodeBlock'
-import { Gutter } from './Gutter'
+import { CodeBlocks } from './CodeBlocks'
+import { TextAreas } from './TextAreas'
 
 export function Diff({
   showDiffs,
-  v2Res,
-  v3Res,
+  leftResp,
+  rightResp,
   show,
   onCompare,
   compared,
@@ -19,7 +19,7 @@ export function Diff({
   diffLinesR,
   diffNum
 }) {
-  const disBtn = !(typeof v2Res === 'string' && typeof v3Res === 'string')
+  const disBtn = !(typeof leftResp === 'string' && typeof rightResp === 'string')
 
   return (
     <div className="diff">
@@ -39,64 +39,40 @@ export function Diff({
               </div>
               {/* <ul id="toolbar" className="toolbar"></ul> */}
               {/* </div> */}
-              <div className="d-flex justify-content-around">
-                <pre id="out" className="d-flex text-left codeBlock left">
-                  <CodeBlock
-                    res={v2Res}
-                    style={`diffGutter`}
-                    diffLines={diffLinesL}
-                    colors={['bg-success text-white', 'bg-info text-white']}
-                  />
-                </pre>
-                <pre id="out2" className="d-flex text-left codeBlock right">
-                  <CodeBlock
-                    res={v3Res}
-                    style={`diffGutter`}
-                    diffLines={diffLinesR}
-                    colors={['bg-danger text-white', 'bg-warning text-white']}
-                  />
-                </pre>
-              </div>
+              <CodeBlocks
+                leftResp={leftResp}
+                rightResp={rightResp}
+                diffLinesL={diffLinesL}
+                diffLinesR={diffLinesR}
+              />
             </div>
           ) : (
-            <div spellCheck="false" id="initContainer">
-              <div className="d-flex justify-content-around">
-                <pre id="errorLeft" className="error col text-danger">
-                  {leftErr}
-                </pre>
-                <button className="btn btn-sm btn-custom" id="compare" onClick={onCompare} disabled={disBtn}>
-                  Compare
-                </button>
-                <pre id="errorRight mt-1" className="error col text-danger">
-                  {rightErr}
-                </pre>
-              </div>
-              <div className="taFCont d-flex justify-content-around">
-                <div className="taCont left d-flex justify-content-around form-group">
-                  <Gutter style={`ta-Gutter`} res={v2Res} idxErr={idxErrLeft} />
-                  <textarea
-                    spellCheck="false"
-                    className="form-control left"
-                    onChange={onUpdateRes}
-                    id="textarealeft"
-                    placeholder="Enter JSON to compare"
-                    defaultValue={v2Res}
-                  />
+              <div spellCheck="false" id="initContainer">
+                <div className="d-flex justify-content-around">
+                  <pre id="errorLeft" className="error col text-danger">
+                    {leftErr}
+                  </pre>
+                  <button
+                    className="btn btn-sm btn-custom"
+                    id="compare"
+                    onClick={onCompare}
+                    disabled={!(typeof leftResp === 'string' && typeof rightResp === 'string')}
+                  >
+                    Compare
+                  </button>
+                  <pre id="errorRight mt-1" className="error col text-danger">
+                    {rightErr}
+                  </pre>
                 </div>
-                <div className="taCont right d-flex justify-content-around form-group">
-                  <Gutter style={`ta-Gutter`} res={v3Res} idxErr={idxErrRight} />
-                  <textarea
-                    spellCheck="false"
-                    className="form-control right"
-                    onChange={onUpdateRes}
-                    id="textarearight"
-                    placeholder="Enter JSON to compare"
-                    defaultValue={v3Res}
-                  />
-                </div>
+                <TextAreas
+                  leftResp={leftResp}
+                  rightResp={rightResp}
+                  idxErrLeft={idxErrLeft}
+                  idxErrRight={idxErrRight}
+                  onUpdateRes={onUpdateRes}
+                />
               </div>
-            </div>
-          )}
+            )}
         </div>
       )}
       <br />

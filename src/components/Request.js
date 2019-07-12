@@ -1,18 +1,12 @@
 import axios from 'axios'
 
-export function sendReq({ url, host, pid, token }) {
-  if (token) {
-    console.log('is token', token)
-    return sendTokenReq({ url, token })
-  } else {
-    console.log('is pid', url, host, pid)
-    return sendCustomReq({ url, host, pid })
-  }
+export function sendReq({ url, host, pid, endpoint, token }) {
+  return token ? sendTokenReq({ endpoint, token }) : sendCustomReq({ url, host, pid })
 }
 
 async function sendTokenReq(props) {
   const response = await axios
-    .get(props.url, {
+    .get(props.endpoint, {
       headers: {
         Accept: 'application/json',
         Authorization: `Bearer ${props.token}`
@@ -22,7 +16,6 @@ async function sendTokenReq(props) {
 }
 
 async function sendCustomReq(props) {
-  console.log(props)
   const response = await axios
     .get(props.url, {
       headers: {

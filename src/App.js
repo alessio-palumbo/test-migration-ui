@@ -7,16 +7,10 @@ import React, { Component } from 'react'
 import { Apis } from './components/Apis'
 import { Diff } from './components/Diff'
 import { Footer } from './components/Footer'
-import { Input } from './components/Input'
+import { ReqForm } from './components/ReqForm'
 import { Method } from './components/Method'
 import { sendReq } from './components/Request'
 import jdd from './libs/jdd'
-
-const stages = {
-  PG_1: [process.env.REACT_APP_V2_PG_1, process.env.REACT_APP_V3_PG_2],
-  PG_2: [process.env.REACT_APP_V2_PG_2, process.env.REACT_APP_V3_PG_2],
-  STG: [process.env.REACT_APP_V2_STG, process.env.REACT_APP_V3_PG_2]
-}
 
 class App extends Component {
   state = {
@@ -40,7 +34,9 @@ class App extends Component {
     },
     method: 'GET',
     endpoint: '',
+    token: '',
     env: '',
+    pid: '',
     stageEnvs: ['PG_1', 'PG_2', 'STG'],
     stage: '',
     v2Res: '',
@@ -84,6 +80,7 @@ class App extends Component {
         {
           endpoint,
           env,
+          pid,
           left,
           right
         },
@@ -93,12 +90,22 @@ class App extends Component {
           })
         }
       )
+      return true
     }
+    return false
   }
 
   componentDidMount() {
-    // Check if query params can be parsed (for request coming from slack)
-    this.fillFromParams()
+    // Check if it's a custom request coming from slack, otherwise retrieve last used fields
+    if (!this.fillFromParams()) {
+      const lastEndpoint = localStorage.getItem('endpoint')
+      const lastToken = localStorage.getItem('token')
+
+      this.setState({
+        endpoint: lastEndpoint,
+        token: lastToken
+      })
+    }
   }
 
   // Reset buttons text to default
@@ -126,6 +133,7 @@ class App extends Component {
     const input = event.target.name
     const text = event.target.value.trim()
 
+    localStorage.setItem(input, text)
     this.setState({ [input]: text })
   }
 
@@ -147,33 +155,44 @@ class App extends Component {
     textField.remove()
   }
 
+  updateBtnMessage = (api, btn, msg) => {
+    let reset = api === 'left' ? 'right' : 'left'
+    this.resetButtons(reset)
+    this.setState(prevState => {
+      const updateBtnLabel = {
+        ...prevState[api],
+        [btn]: msg
+      }
+
+      return ({
+        [api]: updateBtnLabel
+      })
+    })
+  }
+
   // Copy to clipboard
   onCurlCopy = apiId => {
     const field = document.getElementById(apiId)
     const text = field.textContent
     this.copyToClipboard(text)
 
-    let reset = apiId === 'left' ? 'right' : 'left'
-    this.resetButtons(reset)
-    this.setState(prevState => {
-      const updateBtnLabel = {
-        ...prevState[apiId],
-        curlBtn: 'Copied!'
-      }
+    this.updateBtnMessage(apiId, 'curlBtn', 'Copied!')
+  }
 
-      return ({
-        [apiId]: updateBtnLabel
-      })
-    })
+  // Copy JSON response to clipboard
+  onCopyRes = (api, res) => {
+    this.copyToClipboard(res)
+    this.updateBtnMessage(api, 'jsonBtn', 'Copied!')
   }
 
   // Send http request to api
   onSendReq = api => {
     return new Promise((resolve, reject) => {
       this.resetButtons(api)
-      const { url, host, pid, token } = this.state[api]
+      const { url, host, pid } = this.state[api]
+      const { endpoint, token } = this.state
 
-      sendReq({ url, host, pid, token })
+      sendReq({ url, host, pid, endpoint, token })
         .then(result => {
           // create config for v2 result
           const config = jdd.createConfig()
@@ -181,8 +200,8 @@ class App extends Component {
           this.setState(prevState => {
             const updatedApi = {
               ...prevState[api],
-              res: config.out,
-              resJson: JSON.stringify(result),
+              resp: config.out,
+              respJson: JSON.stringify(result),
             }
             return ({
               [api]: updatedApi
@@ -216,39 +235,15 @@ class App extends Component {
     })
   }
 
-  // Copy JSON response to clipboard
-  onCopyRes = (api, res) => {
-    if (api === 'v2') {
-      this.copyToClipboard(res)
-      this.setState({
-        v2JsonCopied: 'Copied!',
-        v3JsonCopied: 'JSON'
-      })
-    } else {
-      this.copyToClipboard(res)
-      this.setState({
-        v3JsonCopied: 'Copied!',
-        v2JsonCopied: 'JSON'
-      })
-    }
-  }
-
   // Change value of method and stage
-  onChangeValue = event => {
+  onChangeMethod = event => {
     const id = event.target.id
     const input = event.target.value
     this.resetAllButtons()
-    if (id === 'method') {
-      this.setState({
-        method: input
-      })
-    } else {
-      this.setState({
-        stage: input,
-        leftUrl: stages[input][0],
-        rightUrl: stages[input][1]
-      })
-    }
+
+    this.setState({
+      method: input
+    })
   }
 
   // Update res in textarea
@@ -375,8 +370,10 @@ class App extends Component {
     const {
       left,
       right,
-      endpoint,
       token,
+      endpoint,
+      env,
+      pid,
       show,
       btnCompText,
       compared,
@@ -394,27 +391,21 @@ class App extends Component {
         <div className="jumbotron">
           <h1 className="title">Migration Testing</h1>
           <br />
-          <Method onChangeValue={this.onChangeValue} stages={stageEnvs} currentStage={stage} />
-          <br />
-          <Input
-            label="Endpoint"
-            name="endpoint"
-            value={endpoint}
+          <ReqForm
+            env={env}
+            endpoint={endpoint}
+            token={token}
+            pid={pid}
             onChangeField={this.onChangeInputField}
             onClearField={this.onClearInput}
-          />
-          <Input
-            label="Token"
-            name="token"
-            value={token}
-            onChangeField={this.onChangeInputField}
-            onClearField={this.onClearInput}
+            onChangeMethod={this.onChangeMethod}
           />
         </div>
         <Apis
           leftApi={left}
           rightApi={right}
           token={token}
+          endpoint={endpoint}
           onCopyCurl={this.onCurlCopy}
           onSendReq={this.onSendReq}
           onCopyRes={this.onCopyRes}
@@ -423,8 +414,8 @@ class App extends Component {
         <Diff
           showDiffs={this.onShowDiffs}
           show={show}
-          v2Res={left.res}
-          v3Res={right.res}
+          leftResp={left.resp}
+          rightResp={right.resp}
           onCompare={this.onCompare}
           onUpdateRes={this.onUpdateRes}
           btnCompText={btnCompText}
