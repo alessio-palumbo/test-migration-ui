@@ -21,17 +21,19 @@ const stages = {
 class App extends Component {
   state = {
     left: {
-      api: 'left',
-      curlCopied: 'Copy Curl',
-      jsonCopied: 'JSON',
+      id: 'left',
+      label: 'left',
+      curlBtn: 'Copy Curl',
+      jsonBtn: 'JSON',
       config: null,
       resp: '',
       respJson: ''
     },
     right: {
-      api: 'right',
-      curlCopied: 'Copy Curl',
-      jsonCopied: 'JSON',
+      id: 'right',
+      label: 'right',
+      curlBtn: 'Copy Curl',
+      jsonBtn: 'JSON',
       config: null,
       resp: '',
       respJson: ''
@@ -104,8 +106,8 @@ class App extends Component {
     this.setState(prevState => {
       const updateApi = {
         ...prevState[api],
-        curlCopied: 'Copy Curl',
-        jsonCopied: 'JSON',
+        curlBtn: 'Copy Curl',
+        jsonBtn: 'JSON',
         resp: ''
       }
       return ({
@@ -124,33 +126,15 @@ class App extends Component {
     const input = event.target.name
     const text = event.target.value.trim()
 
-    input === 'endpoint' ? this.setState({ endpoint: text }) : this.setState({ token: text })
+    this.setState({ [input]: text })
   }
 
   // Clear data when click in the inputs fields
   onClearInput = event => {
-    const input = event.target
-    if (input.name === 'endpoint') {
-      this.setState({
-        endpoint: '',
-        v2Copied: 'Copy Curl',
-        v3Copied: 'Copy Curl',
-        v2JsonCopied: 'JSON',
-        v3JsonCopied: 'JSON',
-        v2Res: '',
-        v3Res: ''
-      })
-    } else {
-      this.setState({
-        token: '',
-        v2Copied: 'Copy Curl',
-        v3Copied: 'Copy Curl',
-        v2JsonCopied: 'JSON',
-        v3JsonCopied: 'JSON',
-        v2Res: '',
-        v3Res: ''
-      })
-    }
+    const input = event.target.name
+
+    this.resetAllButtons()
+    this.setState({ [input]: '' })
   }
 
   // Copy JSON to clipboard
@@ -164,21 +148,23 @@ class App extends Component {
   }
 
   // Copy to clipboard
-  onCurlCopy = itemId => {
-    const field = document.getElementById(itemId)
+  onCurlCopy = apiId => {
+    const field = document.getElementById(apiId)
     const text = field.textContent
     this.copyToClipboard(text)
-    if (itemId === 'v2') {
-      this.setState({
-        v2Copied: 'Copied!',
-        v3Copied: 'Copy'
+
+    let reset = apiId === 'left' ? 'right' : 'left'
+    this.resetButtons(reset)
+    this.setState(prevState => {
+      const updateBtnLabel = {
+        ...prevState[apiId],
+        curlBtn: 'Copied!'
+      }
+
+      return ({
+        [apiId]: updateBtnLabel
       })
-    } else {
-      this.setState({
-        v3Copied: 'Copied!',
-        v2Copied: 'Copy'
-      })
-    }
+    })
   }
 
   // Send http request to api
@@ -212,14 +198,14 @@ class App extends Component {
             }
 
             if (!error.status) {
-              updateApiErr.jsonCopied = '404'
+              updateApiErr.jsonBtn = '404'
 
               if (error.message.indexOf('code') !== -1) {
                 let idx = error.message.indexOf('code') + 5
-                updateApiErr.jsonCopied = error.message.slice(idx, idx + 3)
+                updateApiErr.jsonBtn = error.message.slice(idx, idx + 3)
               }
             } else {
-              updateApiErr.jsonCopied = error.response.status
+              updateApiErr.jsonBtn = error.response.status
             }
 
             return ({
@@ -387,17 +373,10 @@ class App extends Component {
 
   render() {
     const {
-      method,
-      leftUrl,
-      rightUrl,
+      left,
+      right,
       endpoint,
       token,
-      v2Copied,
-      v3Copied,
-      v2JsonCopied,
-      v3JsonCopied,
-      v2Res,
-      v3Res,
       show,
       btnCompText,
       compared,
@@ -406,8 +385,6 @@ class App extends Component {
       diffLinesR,
       report,
       diffNum,
-      v2ResJson,
-      v3ResJson,
       stageEnvs,
       stage
     } = this.state
@@ -435,28 +412,19 @@ class App extends Component {
           />
         </div>
         <Apis
-          method={method}
-          leftUrl={leftUrl + endpoint}
-          rightUrl={rightUrl + endpoint}
+          leftApi={left}
+          rightApi={right}
           token={token}
           onCopyCurl={this.onCurlCopy}
           onSendReq={this.onSendReq}
           onCopyRes={this.onCopyRes}
-          btnTextV2={v2Copied}
-          btnTextV3={v3Copied}
-          btnJsonV2={v2JsonCopied}
-          btnJsonV3={v3JsonCopied}
-          v2ResJson={v2ResJson}
-          v3ResJson={v3ResJson}
-          v2Res={v2Res}
-          v3Res={v3Res}
         />
         <br />
         <Diff
           showDiffs={this.onShowDiffs}
           show={show}
-          v2Res={v2Res}
-          v3Res={v3Res}
+          v2Res={left.res}
+          v3Res={right.res}
           onCompare={this.onCompare}
           onUpdateRes={this.onUpdateRes}
           btnCompText={btnCompText}
