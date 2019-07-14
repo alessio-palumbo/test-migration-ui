@@ -10,7 +10,7 @@ export function Api({
 }) {
 
   const { id, label, curlBtn, jsonBtn, resp, url, host, pid } = api
-  const credentials = token ? `-H 'Authorization: Bearer ${token}'` : `-H 'Host: ${host}' -H 'OSS-PrincipalId: ${pid}`
+  const credentials = token ? `-H 'Authorization: Bearer ${token}'` : `-H 'Host: ${host}' -H 'OSS-PrincipalId: ${pid}'`
   const curl = `curl -H 'Accept: application/json' ${credentials} ${url || endpoint}`
 
   return (
