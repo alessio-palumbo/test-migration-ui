@@ -12,6 +12,7 @@ export function TextAreas({ leftResp, rightResp, idxErrLeft, idxErrRight, onUpda
           className="form-control left"
           onChange={onUpdateRes}
           id="textarealeft"
+          name="left"
           placeholder="Enter JSON to compare"
           defaultValue={leftResp}
         />
@@ -23,6 +24,7 @@ export function TextAreas({ leftResp, rightResp, idxErrLeft, idxErrRight, onUpda
           className="form-control right"
           onChange={onUpdateRes}
           id="textarearight"
+          name="right"
           placeholder="Enter JSON to compare"
           defaultValue={rightResp}
         />

@@ -237,19 +237,21 @@ class App extends Component {
 
   // Update res in textarea
   onUpdateRes = event => {
-    const ta = event.target.id
+    const api = event.target.name
     const input = event.target.value
-    if (ta === 'textarealeft') {
-      this.validateJSON(input, 'left')
-      this.setState({
-        v2Res: input
-      })
-    } else {
-      this.validateJSON(input, 'right')
-      this.setState({
-        v3Res: input
-      })
-    }
+
+    this.setState(prevState => {
+      const updatedApi = {
+        ...prevState[api],
+        resp: input
+      }
+
+      if (this.validateJSON(updatedApi)) {
+        return ({
+          resp: updatedApi
+        })
+      }
+    })
   }
 
   // Show/Hide comparison
@@ -263,27 +265,81 @@ class App extends Component {
   onCompare = () => {
     const { compared } = this.state
     if (compared === false) {
-      if (this.compareJSON() === 'invalid') {
-        return
-      }
-      this.setState({
-        compared: true
-      })
-    } else {
-      this.setState({
-        compared: false
-      })
+      if (!this.compareJSON()) { return }
     }
+
+    this.setState({
+      compared: !compared
+    })
+  }
+
+  // CompareJSON logic
+  compareJSON = () => {
+    const { left, right } = this.state
+
+    // validate the json input
+    let leftRaw = this.validateJSON(left)
+    if (leftRaw === false) {
+      return false
+    }
+    let rightRaw = this.validateJSON(right)
+    if (rightRaw === false) {
+      return false
+    }
+
+    let diffs = this.getApiDiffs(leftRaw, rightRaw)
+
+    // Store the error lines
+    const diffLinesL = new Array(left.resp.split('\n').length - 1)
+    const diffLinesR = new Array(right.resp.split('\n').length - 1)
+    let diffNum = 0
+
+    diffs.map(diff => {
+      diffNum++
+      diffLinesL[diff.path1.line] = diff.type
+      diffLinesR[diff.path2.line] = diff.type
+    })
+
+    // Write report
+    let report = 'Yey! No differences found!'
+    if (diffNum !== 0) {
+      report = `Found ${diffNum} ${diffNum > 1 ? 'differences' : 'difference'}.`
+    }
+
+    this.setState({
+      diffLinesL: diffLinesL,
+      diffLinesR: diffLinesR,
+      diffNum: diffNum,
+      report: report
+    })
+
+    return true
+  }
+
+  getApiDiffs = (leftRaw, rightRaw) => {
+    // create config
+    const leftConfig = jdd.createConfig()
+    jdd.formatAndDecorate(leftConfig, leftRaw)
+
+    const right = jdd.createConfig()
+    jdd.formatAndDecorate(right, rightRaw)
+
+    // Find differences values and store them in jdd.diffs
+    jdd.diffs = []
+    jdd.diffVal(leftRaw, leftConfig, rightRaw, right)
+
+    return jdd.diffs
   }
 
   // Validate the JSON input
-  validateJSON = (input, side) => {
+  validateJSON = (api) => {
+    // Reset any previous error
+    this.setState({
+      parseError: {}
+    })
+
     try {
-      let parsedInput = jsonlint.parse(input)
-      // if no parsing errors reset parsing errors
-      this.setState({
-        parseError: {}
-      })
+      let parsedInput = jsonlint.parse(api.resp)
       return parsedInput
     } catch (e) {
       let msg = e.message
@@ -294,65 +350,12 @@ class App extends Component {
           parseError: {
             msg: msg,
             line: line,
-            side: side
+            side: api.id
           }
         })
       }
       return false
     }
-  }
-
-  // CompareJSON logic
-  compareJSON = () => {
-    const { v2Res, v3Res } = this.state
-    // validate the json input
-    let v2Raw, v3Raw
-    v2Raw = this.validateJSON(v2Res, 'left')
-    if (v2Raw === false) {
-      return 'invalid'
-    }
-    v3Raw = this.validateJSON(v3Res, 'right')
-    if (v3Raw === false) {
-      return 'invalid'
-    }
-
-    // create config
-    const v2Config = jdd.createConfig()
-    jdd.formatAndDecorate(v2Config, v2Raw)
-    const v3Config = jdd.createConfig()
-    jdd.formatAndDecorate(v3Config, v3Raw)
-
-    // Find differences values and store them in jdd.diffs
-    jdd.diffs = []
-    jdd.diffVal(v2Raw, v2Config, v3Raw, v3Config)
-
-    // Store the error lines and type
-    let itemsL = v2Res.split('\n').length - 1
-    let itemsR = v3Res.split('\n').length - 1
-
-    const diffLinesL = new Array(itemsL)
-    const diffLinesR = new Array(itemsR)
-    let diffNum = 0
-
-    jdd.diffs.map(diff => {
-      diffNum++
-      diffLinesL[diff.path1.line] = diff.type
-      diffLinesR[diff.path2.line] = diff.type
-    })
-
-    // Write report
-    let report
-    if (diffNum === 0) {
-      report = 'Yey! No differences found!'
-    } else {
-      report = `Found ${diffNum} ${diffNum > 1 ? 'differences' : 'difference'}.`
-    }
-    this.setState({
-      diffLinesL: diffLinesL,
-      diffLinesR: diffLinesR,
-      diffNum: diffNum,
-      report: report
-    })
   }
 
   render() {
