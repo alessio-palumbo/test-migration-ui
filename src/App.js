@@ -15,7 +15,9 @@ class App extends Component {
   state = {
     left: {
       id: 'left',
-      label: 'left',
+      label: 'API 1',
+      endpoint: '',
+      token: '',
       curlBtn: 'Copy Curl',
       jsonBtn: 'JSON',
       config: null,
@@ -24,7 +26,9 @@ class App extends Component {
     },
     right: {
       id: 'right',
-      label: 'right',
+      label: 'API 2',
+      endpoint: '',
+      token: '',
       curlBtn: 'Copy Curl',
       jsonBtn: 'JSON',
       config: null,
@@ -32,9 +36,9 @@ class App extends Component {
       respJson: ''
     },
     method: 'GET',
+    env: '',
     endpoint: '',
     token: '',
-    env: '',
     pid: '',
     show: false,
     compared: false,
@@ -43,6 +47,13 @@ class App extends Component {
     diffLinesR: null,
     diffNum: 0,
     report: ''
+  }
+
+  componentDidMount() {
+    // Check if it's a custom request coming from slack, otherwise retrieve last used fields
+    if (!this.fillFromParams()) {
+      this.getCachedData()
+    }
   }
 
   fillFromParams() {
@@ -58,14 +69,14 @@ class App extends Component {
       endpoint.indexOf('?') === -1 ? (testing = '?testing=') : (testing += '&testing=')
 
       const left = this.state.left
+      left.label = 'V2'
       left.url = `${base}/v2${endpoint}${testing}`
       left.host = `${env}-v2-${hostBase}`
-      left.pid = pid
 
       const right = this.state.right
+      right.label = 'V3'
       right.url = `${base}${endpoint}${testing}stage=${env}`
       right.host = `${query.get('v3host')}-v3-${hostBase}`
-      right.pid = pid
 
       this.setState(
         {
@@ -86,17 +97,30 @@ class App extends Component {
     return false
   }
 
-  componentDidMount() {
-    // Check if it's a custom request coming from slack, otherwise retrieve last used fields
-    if (!this.fillFromParams()) {
-      const lastEndpoint = localStorage.getItem('endpoint')
-      const lastToken = localStorage.getItem('token')
+  getCachedData() {
+    const lastLeftEndpoint = localStorage.getItem('left-endpoint')
+    const lastLeftToken = localStorage.getItem('left-token')
+    const lastRightEndpoint = localStorage.getItem('right-endpoint')
+    const lastRightToken = localStorage.getItem('righta-token')
 
-      this.setState({
-        endpoint: lastEndpoint,
-        token: lastToken
+    this.setState(prevState => {
+      const cachedLeft = {
+        ...prevState.left,
+        endpoint: lastLeftEndpoint,
+        token: lastLeftToken
+      }
+
+      const cachedRight = {
+        ...prevState.right,
+        endpoint: lastRightEndpoint,
+        token: lastRightToken
+      }
+
+      return ({
+        left: cachedLeft,
+        right: cachedRight
       })
-    }
+    })
   }
 
   // Reset buttons text to default
@@ -119,21 +143,67 @@ class App extends Component {
     this.resetButtons('right')
   }
 
-  // Update text in input fields
-  onChangeInputField = event => {
+  // Change value of method and stage
+  onChangeMethod = event => {
+    this.resetAllButtons()
+
+    this.setState({
+      method: event.target.value
+    })
+  }
+
+  // Update text in custom input fields
+  onChangeCustomInputField = event => {
+    const input = event.target.name
+    const text = event.target.value.trim()
+
+    this.setState({ [input]: text })
+  }
+
+  // Update text in apis input fields
+  onChangeApiInputField = event => {
     const input = event.target.name
     const text = event.target.value.trim()
 
     localStorage.setItem(input, text)
-    this.setState({ [input]: text })
+
+    const [api, field] = input.split('-')
+    this.setState(prevState => {
+      const updatedField = {
+        ...prevState[api],
+        [field]: text
+      }
+
+      return ({
+        [api]: updatedField
+      })
+    })
   }
 
-  // Clear data when click in the inputs fields
-  onClearInput = event => {
+  // Clear custom inputs when clicking on the reset button
+  onClearCustomInput = event => {
     const input = event.target.name
-
     this.resetAllButtons()
+    console.log(input)
     this.setState({ [input]: '' })
+  }
+
+  // Clear api inputs when clicking on the reset button
+  onClearApiInput = event => {
+    const input = event.target.name
+    this.resetAllButtons()
+
+    const [api, field] = input.split('-')
+    this.setState(prevState => {
+      const clearedInput = {
+        ...prevState[api],
+        [field]: ''
+      }
+
+      return ({
+        [api]: clearedInput
+      })
+    })
   }
 
   // Copy JSON to clipboard
@@ -180,8 +250,8 @@ class App extends Component {
   onSendReq = api => {
     return new Promise((resolve, reject) => {
       this.resetButtons(api)
-      const { url, host, pid } = this.state[api]
-      const { endpoint, token } = this.state
+      const { url, host, pid, endpoint, token } = this.state[api]
+      // const { endpoint, token } = this.state
 
       sendReq({ url, host, pid, endpoint, token })
         .then(result => {
@@ -223,15 +293,6 @@ class App extends Component {
             })
           })
         })
-    })
-  }
-
-  // Change value of method and stage
-  onChangeMethod = event => {
-    this.resetAllButtons()
-
-    this.setState({
-      method: event.target.value
     })
   }
 
@@ -386,8 +447,12 @@ class App extends Component {
             endpoint={endpoint}
             token={token}
             pid={pid}
-            onChangeField={this.onChangeInputField}
-            onClearField={this.onClearInput}
+            leftApi={left}
+            rightApi={right}
+            onChangeCustomField={this.onChangeCustomInputField}
+            onClearCustomField={this.onClearCustomInput}
+            onChangeApiField={this.onChangeApiInputField}
+            onClearApiField={this.onClearApiInput}
             onChangeMethod={this.onChangeMethod}
           />
         </div>
