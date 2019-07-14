@@ -4,7 +4,7 @@ import { Input } from './Input'
 export function Inputs({ leftApi, rightApi, onChangeApiField, onClearApiField }) {
   return (
     <Fragment>
-      <div className='d-flex justify-content-around'>
+      <div className='d-flex flex-wrap justify-content-around'>
         <Input
           label={`${leftApi.label} - Endpoint`}
           name="left-endpoint"
@@ -20,7 +20,7 @@ export function Inputs({ leftApi, rightApi, onChangeApiField, onClearApiField })
           onClearField={onClearApiField}
         />
       </div>
-      <div className='d-flex justify-content-around'>
+      <div className='d-flex flex-wrap justify-content-around'>
         <Input
           label={`${leftApi.label} - Token`}
           name="left-token"

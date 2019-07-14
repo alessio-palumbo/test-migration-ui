@@ -15,7 +15,7 @@ export function Apis({
   const rid = rightApi.id
 
   return (
-    <div className="d-flex justify-content-around api-container">
+    <div className="d-flex justify-content-around">
       <Api
         api={leftApi}
         token={token}

@@ -24,9 +24,26 @@ ul {
 }
 
 /* input */
+.input-container {
+  position: relative;
+}
+
+
 .input-box {
   border: 1px solid #007787 !important;
   min-width: 300px !important;
+}
+
+.clear-btn {
+  position: absolute;
+  right: 0px;
+  bottom: 0px;
+  outline: none !important;
+}
+
+.clear-btn.focus, .clear-btn:focus {
+  -webkit-box-shadow: none!important;
+  box-shadow: none!important;
 }
 
 /* apis */
@@ -39,6 +56,7 @@ ul {
   border: none;
   outline: none;
   text-align: center;
+  max-width: 100%;
 }
 
 .error {
