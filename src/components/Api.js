@@ -4,6 +4,7 @@ export function Api({
   api,
   endpoint,
   token,
+  onChangeField,
   onCopyCurl,
   onSendReq,
   onCopyRes
@@ -15,7 +16,7 @@ export function Api({
 
   return (
     <div className="api">
-      <h5>{label}</h5>
+      <h5><input className="api-label" value={label} type="text" name={`${id}-label`} onChange={onChangeField} /></h5>
       <p id={id} className="d-none">{curl}</p>
       <button onClick={onCopyCurl} className="btn btn-sm btn-custom">{curlBtn}</button>
       <button onClick={onSendReq} className="btn btn-sm btn-custom btn-custom-2">Send Request</button>

@@ -6,6 +6,7 @@ export function Apis({
   rightApi,
   token,
   endpoint,
+  onChangeApiField,
   onCopyCurl,
   onSendReq,
   onCopyRes
@@ -19,6 +20,7 @@ export function Apis({
         api={leftApi}
         token={token}
         endpoint={endpoint}
+        onChangeField={onChangeApiField}
         onCopyCurl={() => onCopyCurl(lid)}
         onSendReq={() => onSendReq(lid)}
         onCopyRes={() => onCopyRes(lid, leftApi.respJson)}
@@ -27,6 +29,7 @@ export function Apis({
         api={rightApi}
         token={token}
         endpoint={endpoint}
+        onChangeField={onChangeApiField}
         onCopyCurl={() => onCopyCurl(rid)}
         onSendReq={() => onSendReq(rid)}
         onCopyRes={() => onCopyRes(rid, rightApi.respJson)}

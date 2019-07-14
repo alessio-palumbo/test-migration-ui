@@ -461,6 +461,7 @@ class App extends Component {
           rightApi={right}
           token={token}
           endpoint={endpoint}
+          onChangeApiField={this.onChangeApiInputField}
           onCopyCurl={this.onCurlCopy}
           onSendReq={this.onSendReq}
           onCopyRes={this.onCopyRes}

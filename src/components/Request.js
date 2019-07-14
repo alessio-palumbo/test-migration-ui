@@ -9,6 +9,7 @@ async function sendTokenReq(props) {
     .get(props.endpoint, {
       headers: {
         Accept: 'application/json',
+        crossdomain: true,
         Authorization: `Bearer ${props.token}`
       }
     });
@@ -20,7 +21,7 @@ async function sendCustomReq(props) {
     .get(props.url, {
       headers: {
         Accept: 'application/json',
-        'Access-Control-Allow-Origin': '*',
+        crossdomain: true,
         'X-Host-Override': props.host,
         'OSS-PrincipalId': props.pid
       }
