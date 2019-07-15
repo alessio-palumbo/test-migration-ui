@@ -1,7 +1,7 @@
 import React from 'react'
 import { Api } from './Api'
 
-export function Apis({ leftApi, rightApi, token, endpoint, pid, onChangeApiField, onCopyCurl, onSendReq, onCopyRes }) {
+export function Apis({ leftApi, rightApi, onChangeApiField, onCopyCurl, onSendReq, onCopyRes }) {
   const lid = leftApi.id
   const rid = rightApi.id
 
@@ -9,9 +9,6 @@ export function Apis({ leftApi, rightApi, token, endpoint, pid, onChangeApiField
     <div className="d-flex justify-content-around">
       <Api
         api={leftApi}
-        token={token}
-        endpoint={endpoint}
-        pid={pid}
         onChangeField={onChangeApiField}
         onCopyCurl={() => onCopyCurl(lid)}
         onSendReq={() => onSendReq(lid)}
@@ -19,9 +16,6 @@ export function Apis({ leftApi, rightApi, token, endpoint, pid, onChangeApiField
       />
       <Api
         api={rightApi}
-        token={token}
-        endpoint={endpoint}
-        pid={pid}
         onChangeField={onChangeApiField}
         onCopyCurl={() => onCopyCurl(rid)}
         onSendReq={() => onSendReq(rid)}

@@ -13,6 +13,7 @@ import jdd from './libs/jdd'
 
 class App extends Component {
   state = {
+    method: 'GET',
     left: {
       id: 'left',
       label: 'API 1',
@@ -22,7 +23,8 @@ class App extends Component {
       jsonBtn: 'JSON',
       config: null,
       resp: '',
-      respJson: ''
+      respJson: '',
+      time: ''
     },
     right: {
       id: 'right',
@@ -33,13 +35,9 @@ class App extends Component {
       jsonBtn: 'JSON',
       config: null,
       resp: '',
-      respJson: ''
+      respJson: '',
+      time: ''
     },
-    method: 'GET',
-    env: '',
-    endpoint: '',
-    token: '',
-    pid: '',
     show: false,
     compared: false,
     parseError: { msg: '', line: '', side: '' },
@@ -70,19 +68,18 @@ class App extends Component {
 
       const left = this.state.left
       left.label = 'V2'
-      left.url = `${base}/v2${endpoint}${testing}`
+      left.endpoint = `${base}/v2${endpoint}${testing}`
       left.host = `${env}-v2-${hostBase}`
+      left.pid = pid
 
       const right = this.state.right
       right.label = 'V3'
-      right.url = `${base}${endpoint}${testing}stage=${env}`
+      right.endpoint = `${base}${endpoint}${testing}stage=${env}`
       right.host = `${query.get('v3host')}-v3-${hostBase}`
+      right.pid = pid
 
       this.setState(
         {
-          endpoint,
-          env,
-          pid,
           left,
           right
         },
@@ -152,15 +149,6 @@ class App extends Component {
     })
   }
 
-  // Update text in custom input fields
-  onChangeCustomInputField = event => {
-    this.resetAllButtons()
-    const input = event.target.name
-    const text = event.target.value.trim()
-
-    this.setState({ [input]: text })
-  }
-
   // Update text in apis input fields
   onChangeApiInputField = event => {
     this.resetAllButtons()
@@ -180,14 +168,6 @@ class App extends Component {
         [api]: updatedField
       })
     })
-  }
-
-  // Clear custom inputs when clicking on the reset button
-  onClearCustomInput = event => {
-    const input = event.target.name
-    this.resetAllButtons()
-    console.log(input)
-    this.setState({ [input]: '' })
   }
 
   // Clear api inputs when clicking on the reset button
@@ -252,11 +232,14 @@ class App extends Component {
   onSendReq = api => {
     return new Promise((resolve, reject) => {
       this.resetButtons(api)
-      const { url, host, pid, endpoint, token } = this.state[api]
+      const { endpoint, token, host, pid } = this.state[api]
       // const { endpoint, token } = this.state
 
-      sendReq({ url, host, pid, endpoint, token })
+      let startTimer = new Date()
+      sendReq({ endpoint, token, host, pid })
         .then(result => {
+          let elapsed = new Date() - startTimer
+
           // create config for v2 result
           const config = jdd.createConfig()
           jdd.formatAndDecorate(config, result)
@@ -265,6 +248,7 @@ class App extends Component {
               ...prevState[api],
               resp: config.out,
               respJson: JSON.stringify(result),
+              time: elapsed
             }
             return ({
               [api]: updatedApi
@@ -422,22 +406,7 @@ class App extends Component {
   }
 
   render() {
-    const {
-      left,
-      right,
-      env,
-      token,
-      endpoint,
-      pid,
-      show,
-      btnCompText,
-      compared,
-      parseError,
-      diffLinesL,
-      diffLinesR,
-      report,
-      diffNum
-    } = this.state
+    const { left, right, show, btnCompText, compared, parseError, diffLinesL, diffLinesR, report, diffNum } = this.state
 
     return (
       <div className="App">
@@ -445,14 +414,8 @@ class App extends Component {
           <h1 className="title">Migration Testing</h1>
           <br />
           <ReqForm
-            env={env}
-            endpoint={endpoint}
-            token={token}
-            pid={pid}
             leftApi={left}
             rightApi={right}
-            onChangeCustomField={this.onChangeCustomInputField}
-            onClearCustomField={this.onClearCustomInput}
             onChangeApiField={this.onChangeApiInputField}
             onClearApiField={this.onClearApiInput}
             onChangeMethod={this.onChangeMethod}
@@ -461,9 +424,6 @@ class App extends Component {
         <Apis
           leftApi={left}
           rightApi={right}
-          token={token}
-          endpoint={endpoint}
-          pid={pid}
           onChangeApiField={this.onChangeApiInputField}
           onCopyCurl={this.onCurlCopy}
           onSendReq={this.onSendReq}

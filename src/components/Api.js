@@ -1,10 +1,10 @@
 import React from "react";
 
-export function Api({ api, endpoint, token, pid, onChangeField, onCopyCurl, onSendReq, onCopyRes }) {
-  const { id, label, curlBtn, jsonBtn, resp, url, host } = api
-  token = token || api.token
-  const credentials = pid ? `-H 'Host: ${host}' -H 'OSS-PrincipalId: ${pid}'` : `-H 'Authorization: Bearer ${token}'`
-  const curl = `curl -H 'Accept: application/json' ${credentials} ${url || endpoint}`
+export function Api({ api, onChangeField, onCopyCurl, onSendReq, onCopyRes }) {
+  const { id, label, endpoint, token, pid, curlBtn, jsonBtn, resp, host, time } = api
+
+  const credentials = token ? `-H 'Authorization: Bearer ${token}'` : `-H 'Host: ${host}' -H 'OSS-PrincipalId: ${pid}'`
+  const curl = `curl -H 'Accept: application/json' ${credentials} ${endpoint}`
 
   return (
     <div className="api">

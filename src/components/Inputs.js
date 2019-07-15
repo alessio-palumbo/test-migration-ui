@@ -1,42 +1,34 @@
 import React, { Fragment } from 'react'
 import { Input } from './Input'
 
-export function Inputs({ leftApi, rightApi, onChangeApiField, onClearApiField }) {
+export function Inputs({ api, onChangeApiField, onClearApiField }) {
   return (
     <Fragment>
-      <div className='d-flex flex-wrap justify-content-around'>
+      <div>
         <Input
-          label={`${leftApi.label} - Endpoint`}
+          label={`${api.label} - Endpoint`}
           name="left-endpoint"
-          value={leftApi.endpoint}
+          value={api.endpoint}
           onChangeField={onChangeApiField}
           onClearField={onClearApiField}
         />
         <Input
-          label={`${rightApi.label} - Endpoint`}
-          name="right-endpoint"
-          value={rightApi.endpoint}
-          onChangeField={onChangeApiField}
-          onClearField={onClearApiField}
-        />
-      </div>
-      <div className='d-flex flex-wrap justify-content-around'>
-        <Input
-          label={`${leftApi.label} - Token`}
+          label={`${api.label} - Token`}
           name="left-token"
-          value={leftApi.token}
+          value={api.token}
           onChangeField={onChangeApiField}
           onClearField={onClearApiField}
         />
-        <Input
-          label={`${rightApi.label} - Token`}
-          name="right-token"
-          value={rightApi.token}
-          onChangeField={onChangeApiField}
-          onClearField={onClearApiField}
-        />
+        {api.pid && (
+          <Input
+            label={`${api.label} - PrincipalId`}
+            name="pid"
+            value={api.pid}
+            onChangeField={onChangeApiField}
+            onClearField={onClearApiField}
+          />
+        )}
       </div>
-
     </Fragment>
   )
 }
