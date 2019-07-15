@@ -1,17 +1,9 @@
 import React from "react";
 
-export function Api({
-  api,
-  endpoint,
-  token,
-  onChangeField,
-  onCopyCurl,
-  onSendReq,
-  onCopyRes
-}) {
-
-  const { id, label, curlBtn, jsonBtn, resp, url, host, pid } = api
-  const credentials = token ? `-H 'Authorization: Bearer ${token}'` : `-H 'Host: ${host}' -H 'OSS-PrincipalId: ${pid}'`
+export function Api({ api, endpoint, token, pid, onChangeField, onCopyCurl, onSendReq, onCopyRes }) {
+  const { id, label, curlBtn, jsonBtn, resp, url, host } = api
+  token = token || api.token
+  const credentials = pid ? `-H 'Host: ${host}' -H 'OSS-PrincipalId: ${pid}'` : `-H 'Authorization: Bearer ${token}'`
   const curl = `curl -H 'Accept: application/json' ${credentials} ${url || endpoint}`
 
   return (

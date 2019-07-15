@@ -101,7 +101,7 @@ class App extends Component {
     const lastLeftEndpoint = localStorage.getItem('left-endpoint')
     const lastLeftToken = localStorage.getItem('left-token')
     const lastRightEndpoint = localStorage.getItem('right-endpoint')
-    const lastRightToken = localStorage.getItem('righta-token')
+    const lastRightToken = localStorage.getItem('right-token')
 
     this.setState(prevState => {
       const cachedLeft = {
@@ -154,6 +154,7 @@ class App extends Component {
 
   // Update text in custom input fields
   onChangeCustomInputField = event => {
+    this.resetAllButtons()
     const input = event.target.name
     const text = event.target.value.trim()
 
@@ -162,6 +163,7 @@ class App extends Component {
 
   // Update text in apis input fields
   onChangeApiInputField = event => {
+    this.resetAllButtons()
     const input = event.target.name
     const text = event.target.value.trim()
 
@@ -423,9 +425,9 @@ class App extends Component {
     const {
       left,
       right,
+      env,
       token,
       endpoint,
-      env,
       pid,
       show,
       btnCompText,
@@ -461,6 +463,7 @@ class App extends Component {
           rightApi={right}
           token={token}
           endpoint={endpoint}
+          pid={pid}
           onChangeApiField={this.onChangeApiInputField}
           onCopyCurl={this.onCurlCopy}
           onSendReq={this.onSendReq}
