@@ -292,13 +292,13 @@ class App extends Component {
   onUpdateRes = event => {
     const api = event.target.name
     const input = event.target.value
-    const error = this.validateJSON(input)
+    const [parsed, error] = this.validateJSON(input)
 
     this.setState(prevState => {
       const updatedApi = {
         ...prevState[api],
         resp: input,
-        respJson: JSON.stringify(input),
+        respJson: JSON.stringify(parsed),
         parseError: error
       }
 
@@ -368,6 +368,23 @@ class App extends Component {
     const rightConfig = jdd.createConfig()
     jdd.formatAndDecorate(rightConfig, rightRaw)
 
+    this.setState(prevState => {
+      const formatLeftResp = {
+        ...prevState.left,
+        resp: leftConfig.out
+      }
+
+      const formatRightResp = {
+        ...prevState.right,
+        resp: rightConfig.out
+      }
+
+      return ({
+        left: formatLeftResp,
+        right: formatRightResp
+      })
+    })
+
     // Find differences values and store them in jdd.diffs
     jdd.diffs = []
     jdd.diffVal(leftRaw, leftConfig, rightRaw, rightConfig)
@@ -377,19 +394,20 @@ class App extends Component {
 
   // Validate the JSON input
   validateJSON = input => {
-    if (input === '') { return null }
+    if (input === '') { return [null, null] }
 
     try {
-      jsonlint.parse(input)
-      return null
+      let parsed = jsonlint.parse(input)
+      return [parsed, null]
     } catch (e) {
       let msg = e.message
       if (msg.indexOf('Parse error') !== -1) {
         let reason = msg.split(':')[0]
-        return {
+        let error = {
           msg: reason + ' : ' + msg.substr(msg.indexOf('Expecting')),
           line: reason.split(' ').pop()
         }
+        return ['Invalid JSON', error]
       }
     }
   }

@@ -28,7 +28,7 @@ export function Api({ api, onChangeField, onCopyCurl, onSendReq, onCopyResp }) {
           <button
             onClick={onCopyResp}
             className={`btn btn-sm btn-custom ${hasRespError ? 'btn-danger' : 'btn-custom-3'}`}
-            disabled={hasRespError}
+            disabled={hasRespError || !!api.parseError}
           >
             {jsonBtn}
           </button>
