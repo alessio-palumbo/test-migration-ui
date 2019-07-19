@@ -4,21 +4,18 @@ import { TextAreas } from './TextAreas'
 
 export function Diff({
   showDiffs,
-  leftResp,
-  rightResp,
+  leftApi,
+  rightApi,
   show,
   onCompare,
   compared,
   report,
   onUpdateRes,
-  leftErr,
-  rightErr,
-  idxErrLeft,
-  idxErrRight,
   diffLinesL,
   diffLinesR,
   diffNum
 }) {
+  const isDisabled = leftApi.parseError || rightApi.parseError || leftApi.resp === '' || rightApi.resp === ''
 
   return (
     <div className="diff">
@@ -39,8 +36,8 @@ export function Diff({
               {/* <ul id="toolbar" className="toolbar"></ul> */}
               {/* </div> */}
               <CodeBlocks
-                leftResp={leftResp}
-                rightResp={rightResp}
+                leftResp={leftApi.resp}
+                rightResp={rightApi.resp}
                 diffLinesL={diffLinesL}
                 diffLinesR={diffLinesR}
               />
@@ -49,25 +46,18 @@ export function Diff({
               <div spellCheck="false" id="initContainer">
                 <div className="d-flex justify-content-around">
                   <pre id="errorLeft" className="error col text-danger">
-                    {leftErr}
+                    {leftApi.parseError && leftApi.parseError.msg}
                   </pre>
-                  <button
-                    className="btn btn-sm btn-custom"
-                    id="compare"
-                    onClick={onCompare}
-                    disabled={!(typeof leftResp === 'string' && typeof rightResp === 'string')}
-                  >
+                  <button className="btn btn-sm btn-custom" id="compare" onClick={onCompare} disabled={isDisabled}>
                     Compare
-                  </button>
+                </button>
                   <pre id="errorRight mt-1" className="error col text-danger">
-                    {rightErr}
+                    {rightApi.parseError && rightApi.parseError.msg}
                   </pre>
                 </div>
                 <TextAreas
-                  leftResp={leftResp}
-                  rightResp={rightResp}
-                  idxErrLeft={idxErrLeft}
-                  idxErrRight={idxErrRight}
+                  leftApi={leftApi}
+                  rightApi={rightApi}
                   onUpdateRes={onUpdateRes}
                 />
               </div>

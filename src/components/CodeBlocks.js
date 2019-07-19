@@ -6,7 +6,7 @@ export function CodeBlocks({ leftResp, rightResp, diffLinesL, diffLinesR }) {
     <div className="d-flex justify-content-around">
       <pre id="out" className="d-flex text-left codeBlock left">
         <CodeBlock
-          res={leftResp}
+          resp={leftResp}
           style={`diffGutter`}
           diffLines={diffLinesL}
           colors={['bg-success text-white', 'bg-info text-white']}
@@ -14,7 +14,7 @@ export function CodeBlocks({ leftResp, rightResp, diffLinesL, diffLinesR }) {
       </pre>
       <pre id="out2" className="d-flex text-left codeBlock right">
         <CodeBlock
-          res={rightResp}
+          resp={rightResp}
           style={`diffGutter`}
           diffLines={diffLinesR}
           colors={['bg-danger text-white', 'bg-warning text-white']}

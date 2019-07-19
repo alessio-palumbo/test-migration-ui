@@ -1,7 +1,7 @@
 import React from 'react'
 import { Api } from './Api'
 
-export function Apis({ leftApi, rightApi, onChangeApiField, onCopyCurl, onSendReq, onCopyRes }) {
+export function Apis({ leftApi, rightApi, onChangeApiField, onCopyCurl, onSendReq, onCopyResp }) {
   const lid = leftApi.id
   const rid = rightApi.id
 
@@ -12,14 +12,14 @@ export function Apis({ leftApi, rightApi, onChangeApiField, onCopyCurl, onSendRe
         onChangeField={onChangeApiField}
         onCopyCurl={() => onCopyCurl(lid)}
         onSendReq={() => onSendReq(lid)}
-        onCopyRes={() => onCopyRes(lid, leftApi.respJson)}
+        onCopyResp={() => onCopyResp(lid)}
       />
       <Api
         api={rightApi}
         onChangeField={onChangeApiField}
         onCopyCurl={() => onCopyCurl(rid)}
         onSendReq={() => onSendReq(rid)}
-        onCopyRes={() => onCopyRes(rid, rightApi.respJson)}
+        onCopyResp={() => onCopyResp(rid)}
       />
     </div>
   )

@@ -1,32 +1,31 @@
 import React from 'react'
 import { Gutter } from './Gutter'
 
-export function TextAreas({ leftResp, rightResp, idxErrLeft, idxErrRight, onUpdateRes }) {
-
+export function TextAreas({ leftApi, rightApi, onUpdateRes }) {
   return (
     <div className="taFCont d-flex justify-content-around">
       <div className="taCont left d-flex justify-content-around form-group">
-        <Gutter style={`ta-Gutter`} res={leftResp} idxErr={idxErrLeft} />
+        <Gutter style={`ta-Gutter`} resp={leftApi.resp} idxErr={leftApi.parseError && leftApi.parseError.line} />
         <textarea
           spellCheck="false"
           className="form-control left"
           onChange={onUpdateRes}
           id="textarealeft"
           name="left"
-          placeholder="Enter JSON to compare"
-          defaultValue={leftResp}
+          placeholder={leftApi.respError || "Enter JSON to compare"}
+          value={leftApi.resp}
         />
       </div>
       <div className="taCont right d-flex justify-content-around form-group">
-        <Gutter style={`ta-Gutter`} res={rightResp} idxErr={idxErrRight} />
+        <Gutter style={`ta-Gutter`} resp={rightApi.resp} idxErr={rightApi.parseError && rightApi.parseError.line} />
         <textarea
           spellCheck="false"
           className="form-control right"
           onChange={onUpdateRes}
           id="textarearight"
           name="right"
-          placeholder="Enter JSON to compare"
-          defaultValue={rightResp}
+          placeholder={rightApi.parseError || "Enter JSON to compare"}
+          value={rightApi.resp}
         />
       </div>
     </div>

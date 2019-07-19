@@ -24,7 +24,9 @@ class App extends Component {
       config: null,
       resp: '',
       respJson: '',
-      time: ''
+      respError: null,
+      time: '',
+      parseError: null
     },
     right: {
       id: 'right',
@@ -36,11 +38,12 @@ class App extends Component {
       config: null,
       resp: '',
       respJson: '',
-      time: ''
+      respError: null,
+      time: '',
+      parseError: null
     },
     show: false,
     compared: false,
-    parseError: { msg: '', line: '', side: '' },
     diffLinesL: null,
     diffLinesR: null,
     diffNum: 0,
@@ -223,8 +226,8 @@ class App extends Component {
   }
 
   // Copy JSON response to clipboard
-  onCopyRes = (api, res) => {
-    this.copyToClipboard(res)
+  onCopyResp = api => {
+    this.copyToClipboard(this.state[api].respJson)
     this.updateBtnMessage(api, 'jsonBtn', 'Copied!')
   }
 
@@ -233,14 +236,13 @@ class App extends Component {
     return new Promise((resolve, reject) => {
       this.resetButtons(api)
       const { endpoint, token, host, pid } = this.state[api]
-      // const { endpoint, token } = this.state
 
       let startTimer = new Date()
       sendReq({ endpoint, token, host, pid })
         .then(result => {
           let elapsed = new Date() - startTimer
 
-          // create config for v2 result
+          // create formatted response to be displayed in textareas
           const config = jdd.createConfig()
           jdd.formatAndDecorate(config, result)
           this.setState(prevState => {
@@ -248,8 +250,10 @@ class App extends Component {
               ...prevState[api],
               resp: config.out,
               respJson: JSON.stringify(result),
+              respError: null,
               time: elapsed
             }
+
             return ({
               [api]: updatedApi
             })
@@ -260,11 +264,13 @@ class App extends Component {
           this.setState(prevState => {
             const updateApiErr = {
               ...prevState[api],
-              resp: error
+              resp: '',
+              respJson: '',
+              respError: error
             }
 
             if (!error.status) {
-              updateApiErr.jsonBtn = '404'
+              updateApiErr.jsonBtn = '400'
 
               if (error.message.indexOf('code') !== -1) {
                 let idx = error.message.indexOf('code') + 5
@@ -286,25 +292,26 @@ class App extends Component {
   onUpdateRes = event => {
     const api = event.target.name
     const input = event.target.value
+    const error = this.validateJSON(input)
 
     this.setState(prevState => {
       const updatedApi = {
         ...prevState[api],
-        resp: input
+        resp: input,
+        respJson: JSON.stringify(input),
+        parseError: error
       }
 
-      if (this.validateJSON(updatedApi)) {
-        return ({
-          resp: updatedApi
-        })
+      return {
+        [api]: updatedApi
       }
     })
   }
 
   // Show/Hide comparison
   onShowDiffs = () => {
-    this.setState({
-      show: !this.state.show
+    this.setState(prevState => {
+      return { show: !prevState.show }
     })
   }
 
@@ -312,7 +319,7 @@ class App extends Component {
   onCompare = () => {
     const { compared } = this.state
     if (compared === false) {
-      if (!this.compareJSON()) { return }
+      this.compareJSON()
     }
 
     this.setState({
@@ -324,17 +331,7 @@ class App extends Component {
   compareJSON = () => {
     const { left, right } = this.state
 
-    // validate the json input
-    let leftRaw = this.validateJSON(left)
-    if (leftRaw === false) {
-      return false
-    }
-    let rightRaw = this.validateJSON(right)
-    if (rightRaw === false) {
-      return false
-    }
-
-    let diffs = this.getApiDiffs(leftRaw, rightRaw)
+    let diffs = this.getApiDiffs(left.resp, right.resp)
 
     // Store the error lines
     const diffLinesL = new Array(left.resp.split('\n').length - 1)
@@ -359,54 +356,46 @@ class App extends Component {
       diffNum: diffNum,
       report: report
     })
-
-    return true
   }
 
-  getApiDiffs = (leftRaw, rightRaw) => {
+  getApiDiffs = (leftResp, rightResp) => {
     // create config
+    const leftRaw = jsonlint.parse(leftResp)
     const leftConfig = jdd.createConfig()
     jdd.formatAndDecorate(leftConfig, leftRaw)
 
-    const right = jdd.createConfig()
-    jdd.formatAndDecorate(right, rightRaw)
+    const rightRaw = jsonlint.parse(rightResp)
+    const rightConfig = jdd.createConfig()
+    jdd.formatAndDecorate(rightConfig, rightRaw)
 
     // Find differences values and store them in jdd.diffs
     jdd.diffs = []
-    jdd.diffVal(leftRaw, leftConfig, rightRaw, right)
+    jdd.diffVal(leftRaw, leftConfig, rightRaw, rightConfig)
 
     return jdd.diffs
   }
 
   // Validate the JSON input
-  validateJSON = (api) => {
-    // Reset any previous error
-    this.setState({
-      parseError: {}
-    })
+  validateJSON = input => {
+    if (input === '') { return null }
 
     try {
-      let parsedInput = jsonlint.parse(api.resp)
-      return parsedInput
+      jsonlint.parse(input)
+      return null
     } catch (e) {
       let msg = e.message
-      msg = msg.substring(0, msg.indexOf(':'))
       if (msg.indexOf('Parse error') !== -1) {
-        let line = msg.substring(msg.indexOf('line') + 5)
-        this.setState({
-          parseError: {
-            msg: msg,
-            line: line,
-            side: api.id
-          }
-        })
+        let reason = msg.split(':')[0]
+        return {
+          msg: reason + ' : ' + msg.substr(msg.indexOf('Expecting')),
+          line: reason.split(' ').pop()
+        }
       }
-      return false
     }
   }
 
   render() {
-    const { left, right, show, btnCompText, compared, parseError, diffLinesL, diffLinesR, report, diffNum } = this.state
+    const { left, right, show, btnCompText, compared, diffLinesL, diffLinesR, report, diffNum } = this.state
 
     return (
       <div className="App">
@@ -427,22 +416,18 @@ class App extends Component {
           onChangeApiField={this.onChangeApiInputField}
           onCopyCurl={this.onCurlCopy}
           onSendReq={this.onSendReq}
-          onCopyRes={this.onCopyRes}
+          onCopyResp={this.onCopyResp}
         />
         <br />
         <Diff
           showDiffs={this.onShowDiffs}
           show={show}
-          leftResp={left.resp}
-          rightResp={right.resp}
+          leftApi={left}
+          rightApi={right}
           onCompare={this.onCompare}
           onUpdateRes={this.onUpdateRes}
           btnCompText={btnCompText}
           compared={compared}
-          leftErr={parseError.side === 'left' && parseError.msg}
-          rightErr={parseError.side === 'right' && parseError.msg}
-          idxErrLeft={parseError.side === 'left' && parseError.line}
-          idxErrRight={parseError.side === 'right' && parseError.line}
           diffLinesL={diffLinesL}
           diffLinesR={diffLinesR}
           report={report}

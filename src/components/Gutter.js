@@ -1,18 +1,19 @@
-import React from 'react';
+import React from 'react'
 
-export function Gutter({ style, res, idxErr }) {
+export function Gutter({ style, resp, idxErr }) {
   let lines = []
-  if (typeof res === "string") {
-    lines = res.split("\n")
-    lines.pop()
+  if (typeof resp === 'string' && resp !== '') {
+    lines = resp.split('\n')
   }
+
   return (
     <div className={style}>
-      {
-        lines && lines.map((line, index) =>
-          <div key={index} className={`line-number ${(index + 1) === parseInt(idxErr, 10) && "bg-danger"}`}><p>{index + 1}.</p></div>
-        )
-      }
+      {lines &&
+        lines.map((line, index) => (
+          <div key={index} className={`line-number ${index + 1 === parseInt(idxErr, 10) && 'bg-danger'}`}>
+            <p>{index + 1}.</p>
+          </div>
+        ))}
     </div>
   )
 }
