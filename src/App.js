@@ -61,27 +61,24 @@ class App extends Component {
 
   fillFromParams() {
     const query = new URLSearchParams(window.location.search)
-    if (query && query.has('base')) {
-      const base = query.get('base')
-      const hostBase = base.substr(base.indexOf('.') + 1)
-      const endpoint = query.get('endpoint')
-      const env = query.get('env')
-      const pid = query.get('pid')
+    if (query && query.has('left') && query.has('right')) {
+      const leftEndpoint = query.get('left')
+      const rightEndpoint = query.get('right')
+      const token = query.get('token')
 
-      let testing = ''
-      endpoint.indexOf('?') === -1 ? (testing = '?testing=') : (testing += '&testing=')
+      const left = {
+        ...this.state.left,
+        label: 'V2',
+        endpoint: leftEndpoint,
+        token: token
+      }
 
-      const left = this.state.left
-      left.label = 'V2'
-      left.endpoint = `${base}/v2${endpoint}${testing}`
-      left.host = `${env}-v2-${hostBase}`
-      left.pid = pid
-
-      const right = this.state.right
-      right.label = 'V3'
-      right.endpoint = `${base}${endpoint}${testing}stage=${env}`
-      right.host = `${query.get('v3host')}-v3-${hostBase}`
-      right.pid = pid
+      const right = {
+        ...this.state.right,
+        label: 'V3',
+        endpoint: rightEndpoint,
+        token: token
+      }
 
       this.setState(
         {
@@ -127,7 +124,6 @@ class App extends Component {
 
   // Change value of method and stage
   onChangeMethod = event => {
-    this.resetAllButtons()
 
     this.setState({
       method: event.target.value
@@ -181,6 +177,7 @@ class App extends Component {
     textField.remove()
   }
 
+  // Change label when button is clicked for a set time
   updateBtnMessage = (api, btn) => {
     this.setState(prevState => {
       const updateBtnLabel = {
@@ -222,7 +219,6 @@ class App extends Component {
   // Send http request to api
   onSendReq = api => {
     return new Promise((resolve, reject) => {
-      const { endpoint, token, host, pid } = this.state[api]
       this.setState(prevState => {
         const sending = {
           ...prevState[api],
@@ -238,8 +234,10 @@ class App extends Component {
         })
       })
 
+      const { endpoint, token } = this.state[api]
+
       let startTimer = new Date()
-      sendReq({ endpoint, token, host, pid })
+      sendReq({ endpoint, token })
         .then(result => {
           let elapsed = new Date() - startTimer
 

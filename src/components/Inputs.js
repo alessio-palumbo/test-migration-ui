@@ -21,15 +21,6 @@ export function Inputs({ api, onChangeApiField, onClearApiField }) {
           onChangeField={onChangeApiField}
           onClearField={onClearApiField}
         />
-        {api.pid && (
-          <Input
-            label={`${label} - PrincipalId`}
-            name={`${id}-pid`}
-            value={api.pid}
-            onChangeField={onChangeApiField}
-            onClearField={onClearApiField}
-          />
-        )}
       </div>
     </Fragment>
   )
