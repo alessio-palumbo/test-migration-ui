@@ -19,8 +19,8 @@ class App extends Component {
       label: 'API 1',
       endpoint: '',
       token: '',
-      curlBtn: 'Copy Curl',
-      jsonBtn: 'JSON',
+      curlCopied: false,
+      jsonCopied: false,
       config: null,
       resp: '',
       respJson: '',
@@ -33,8 +33,8 @@ class App extends Component {
       label: 'API 2',
       endpoint: '',
       token: '',
-      curlBtn: 'Copy Curl',
-      jsonBtn: 'JSON',
+      curlCopied: false,
+      jsonCopied: false,
       config: null,
       resp: '',
       respJson: '',
@@ -123,14 +123,14 @@ class App extends Component {
     })
   }
 
+  TODO
   // Reset buttons text to default
   resetButtons = api => {
     this.setState(prevState => {
       const updateApi = {
         ...prevState[api],
-        curlBtn: 'Copy Curl',
-        jsonBtn: 'JSON',
-        resp: ''
+        curlCopied: false,
+        jsonCopied: false
       }
       return ({
         [api]: updateApi
@@ -201,40 +201,47 @@ class App extends Component {
     textField.remove()
   }
 
-  updateBtnMessage = (api, btn, msg) => {
-    let reset = api === 'left' ? 'right' : 'left'
-    this.resetButtons(reset)
+  updateBtnMessage = (api, btn) => {
     this.setState(prevState => {
       const updateBtnLabel = {
         ...prevState[api],
-        [btn]: msg
+        [btn]: !prevState[api][btn]
       }
 
       return ({
         [api]: updateBtnLabel
       })
     })
+
+    setTimeout(() => {
+      this.setState(prevState => {
+        const resetBtnLabel = { ...prevState[api] }
+        if (resetBtnLabel[btn] === true) {
+          resetBtnLabel[btn] = false
+
+          return ({
+            [api]: resetBtnLabel
+          })
+        }
+      })
+    }, 800)
   }
 
   // Copy to clipboard
-  onCurlCopy = apiId => {
-    const field = document.getElementById(apiId)
-    const text = field.textContent
-    this.copyToClipboard(text)
-
-    this.updateBtnMessage(apiId, 'curlBtn', 'Copied!')
+  onCurlCopy = ({ id, curl }) => {
+    this.copyToClipboard(curl)
+    this.updateBtnMessage(id, 'curlCopied')
   }
 
   // Copy JSON response to clipboard
   onCopyResp = api => {
     this.copyToClipboard(this.state[api].respJson)
-    this.updateBtnMessage(api, 'jsonBtn', 'Copied!')
+    this.updateBtnMessage(api, 'jsonCopied')
   }
 
   // Send http request to api
   onSendReq = api => {
     return new Promise((resolve, reject) => {
-      this.resetButtons(api)
       const { endpoint, token, host, pid } = this.state[api]
 
       let startTimer = new Date()
@@ -267,17 +274,6 @@ class App extends Component {
               resp: '',
               respJson: '',
               respError: error
-            }
-
-            if (!error.status) {
-              updateApiErr.jsonBtn = '400'
-
-              if (error.message.indexOf('code') !== -1) {
-                let idx = error.message.indexOf('code') + 5
-                updateApiErr.jsonBtn = error.message.slice(idx, idx + 3)
-              }
-            } else {
-              updateApiErr.jsonBtn = error.response.status
             }
 
             return ({

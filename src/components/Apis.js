@@ -10,14 +10,14 @@ export function Apis({ leftApi, rightApi, onChangeApiField, onCopyCurl, onSendRe
       <Api
         api={leftApi}
         onChangeField={onChangeApiField}
-        onCopyCurl={() => onCopyCurl(lid)}
+        onCopyCurl={onCopyCurl}
         onSendReq={() => onSendReq(lid)}
         onCopyResp={() => onCopyResp(lid)}
       />
       <Api
         api={rightApi}
         onChangeField={onChangeApiField}
-        onCopyCurl={() => onCopyCurl(rid)}
+        onCopyCurl={onCopyCurl}
         onSendReq={() => onSendReq(rid)}
         onCopyResp={() => onCopyResp(rid)}
       />
