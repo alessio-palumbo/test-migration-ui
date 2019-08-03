@@ -21,6 +21,7 @@ class App extends Component {
       token: '',
       curlCopied: false,
       jsonCopied: false,
+      reqSent: false,
       config: null,
       resp: '',
       respJson: '',
@@ -35,6 +36,7 @@ class App extends Component {
       token: '',
       curlCopied: false,
       jsonCopied: false,
+      reqSent: false,
       config: null,
       resp: '',
       respJson: '',
@@ -123,26 +125,6 @@ class App extends Component {
     })
   }
 
-  TODO
-  // Reset buttons text to default
-  resetButtons = api => {
-    this.setState(prevState => {
-      const updateApi = {
-        ...prevState[api],
-        curlCopied: false,
-        jsonCopied: false
-      }
-      return ({
-        [api]: updateApi
-      })
-    })
-  }
-
-  resetAllButtons() {
-    this.resetButtons('left')
-    this.resetButtons('right')
-  }
-
   // Change value of method and stage
   onChangeMethod = event => {
     this.resetAllButtons()
@@ -154,7 +136,6 @@ class App extends Component {
 
   // Update text in apis input fields
   onChangeApiInputField = event => {
-    this.resetAllButtons()
     const input = event.target.name
     const text = event.target.value.trim()
 
@@ -176,7 +157,6 @@ class App extends Component {
   // Clear api inputs when clicking on the reset button
   onClearApiInput = event => {
     const input = event.target.name
-    this.resetAllButtons()
 
     const [api, field] = input.split('-')
     this.setState(prevState => {
@@ -243,6 +223,20 @@ class App extends Component {
   onSendReq = api => {
     return new Promise((resolve, reject) => {
       const { endpoint, token, host, pid } = this.state[api]
+      this.setState(prevState => {
+        const sending = {
+          ...prevState[api],
+          reqSent: true,
+          resp: '',
+          respJson: '',
+          respError: null,
+          time: ''
+        }
+
+        return ({
+          [api]: sending
+        })
+      })
 
       let startTimer = new Date()
       sendReq({ endpoint, token, host, pid })
@@ -255,6 +249,7 @@ class App extends Component {
           this.setState(prevState => {
             const updatedApi = {
               ...prevState[api],
+              reqSent: false,
               resp: config.out,
               respJson: JSON.stringify(result),
               respError: null,
@@ -271,6 +266,7 @@ class App extends Component {
           this.setState(prevState => {
             const updateApiErr = {
               ...prevState[api],
+              reqSent: false,
               resp: '',
               respJson: '',
               respError: error

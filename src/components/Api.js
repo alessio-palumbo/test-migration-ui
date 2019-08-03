@@ -1,7 +1,7 @@
 import React from "react";
 
 export function Api({ api, onChangeField, onCopyCurl, onSendReq, onCopyResp }) {
-  const { id, label, endpoint, token, pid, curlCopied, jsonCopied, resp, respError, host, time } = api
+  const { id, label, endpoint, token, pid, curlCopied, jsonCopied, reqSent, resp, respError, host, time } = api
 
   const credentials = token ? `-H 'Authorization: Bearer ${token}'` : `-H 'Host: ${host}' -H 'OSS-PrincipalId: ${pid}'`
   const curl = `curl -H 'Accept: application/json' ${credentials} ${endpoint}`
@@ -30,8 +30,10 @@ export function Api({ api, onChangeField, onCopyCurl, onSendReq, onCopyResp }) {
       >
         {curlCopied ? 'Copied!' : 'Copy Curl'}
       </button>
-      <button onClick={onSendReq} className="btn btn-sm btn-custom btn-custom-2">
-        Send Request
+      <button onClick={onSendReq} className="btn btn-sm btn-custom btn-custom-2" disabled={reqSent}>
+        {
+          reqSent ? "Sending..." : "Send Request"
+        }
       </button>
       {
         (resp === '' && !hasRespError) ? (
