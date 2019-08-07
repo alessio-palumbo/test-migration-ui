@@ -62,9 +62,13 @@ class App extends Component {
   fillFromParams() {
     const query = new URLSearchParams(window.location.search)
     if (query && query.has('left') && query.has('right')) {
-      const leftEndpoint = query.get('left')
-      const rightEndpoint = query.get('right')
       const token = query.get('token')
+
+      let queryString = window.location.search
+      let offset = '?left='.length
+      const [leftEndpoint, rightEndpoint] = queryString
+        .substr(offset, queryString.indexOf('&token') - offset)
+        .split('&right=')
 
       const left = {
         ...this.state.left,
