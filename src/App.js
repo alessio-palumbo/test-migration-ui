@@ -19,6 +19,8 @@ class App extends Component {
       label: 'API 1',
       endpoint: '',
       token: '',
+      headers: {},
+      payload: {},
       curlCopied: false,
       jsonCopied: false,
       reqSent: false,
@@ -34,6 +36,8 @@ class App extends Component {
       label: 'API 2',
       endpoint: '',
       token: '',
+      headers: {},
+      payload: {},
       curlCopied: false,
       jsonCopied: false,
       reqSent: false,
@@ -167,16 +171,6 @@ class App extends Component {
     })
   }
 
-  // Copy JSON to clipboard
-  copyToClipboard = text => {
-    const textField = document.createElement('textarea')
-    textField.innerText = text
-    document.body.appendChild(textField)
-    textField.select()
-    document.execCommand('copy')
-    textField.remove()
-  }
-
   // Change label when button is clicked for a set time
   updateBtnMessage = (api, btn) => {
     this.setState(prevState => {
@@ -204,10 +198,55 @@ class App extends Component {
     }, 800)
   }
 
+  // Copy JSON to clipboard
+  copyToClipboard = text => {
+    const textField = document.createElement('textarea')
+    textField.innerText = text
+    document.body.appendChild(textField)
+    textField.select()
+    document.execCommand('copy')
+    textField.remove()
+  }
+
   // Copy to clipboard
   onCurlCopy = ({ id, curl }) => {
     this.copyToClipboard(curl)
     this.updateBtnMessage(id, 'curlCopied')
+  }
+
+  // Copy curl from clipboard and update api fields
+  onCopyClip = async api => {
+    const curl = await navigator.clipboard.readText();
+
+    this.setState(prevState => {
+      const updatedApi = { ...prevState[api] }
+
+      curl.replace(/\'/g, '').split(' -').map(line => {
+        switch (line.substr(0, 2)) {
+          case 'H ':
+            let splitHeader = line.substr(2).trim().split(": ")
+            if (splitHeader[0] === 'Authorization') updatedApi.token = splitHeader[1].split(' ')[1]
+            return updatedApi.headers[splitHeader[0]] = splitHeader[1]
+          case 'X ':
+            return updatedApi.method = line.substr(1).trim()
+          case 'd ':
+          case '-d':
+            updatedApi.method = updatedApi.method || 'POST'
+            return updatedApi.payload = JSON.parse(line.substr(line.indexOf(' ') + 1))
+        }
+
+        if (line.indexOf('http') !== -1) {
+          return updatedApi.endpoint = line.substr(line.indexOf('http'))
+        }
+      })
+
+      console.log(updatedApi)
+
+      return ({
+        [api]: updatedApi
+      })
+
+    })
   }
 
   // Copy JSON response to clipboard
@@ -416,6 +455,7 @@ class App extends Component {
             onChangeApiField={this.onChangeApiInputField}
             onClearApiField={this.onClearApiInput}
             onChangeMethod={this.onChangeMethod}
+            onCopyClip={this.onCopyClip}
           />
         </div>
         <Apis
