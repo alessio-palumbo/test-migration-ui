@@ -10,14 +10,13 @@ import { Footer } from './components/Footer'
 import { ReqForm } from './components/ReqForm'
 import { sendReq } from './components/Request'
 import jdd from './libs/jdd'
-import { Input } from './components/Input';
 
 class App extends Component {
   state = {
-    method: 'GET',
     left: {
       id: 'left',
       label: 'API 1',
+      method: 'GET',
       endpoint: '',
       token: '',
       headers: {},
@@ -35,6 +34,7 @@ class App extends Component {
     right: {
       id: 'right',
       label: 'API 2',
+      method: 'GET',
       endpoint: '',
       token: '',
       headers: {},
@@ -127,11 +127,16 @@ class App extends Component {
     })
   }
 
-  // Change value of method and stage
-  onChangeMethod = event => {
-
-    this.setState({
-      method: event.target.value
+  // Change value of api method
+  onChangeMethod = (event, api) => {
+    let updatedMethod = event.target.value
+    this.setState(prevState => {
+      return ({
+        [api]: {
+          ...prevState[api],
+          method: updatedMethod
+        }
+      })
     })
   }
 

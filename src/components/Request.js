@@ -8,7 +8,7 @@ export async function sendReq(props) {
   }
 
   const config = {
-    method: props.method || 'get',
+    method: props.method,
     headers: !_.isEmpty(props.headers) ? props.headers : defaultHeaders,
     url: props.endpoint
   }

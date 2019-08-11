@@ -10,7 +10,7 @@ export function Inputs({ api, onChangeApiField, onClearApiField, onChangeMethod,
       <div>
         <div className="d-flex align-items-center justify-content-around">
           <button className='btn btn-sm btn-inputs' onClick={() => onCopyClip(api.id)}>Paste Curl</button>
-          <Method onChangeMethod={onChangeMethod} />
+          <Method api={api.id} onChangeMethod={onChangeMethod} />
           <button className='btn btn-sm btn-inputs' onClick={() => onCopyClip(api.id)}>Login</button>
         </div>
         <Input
