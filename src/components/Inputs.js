@@ -1,12 +1,18 @@
 import React, { Fragment } from 'react'
 import { Input } from './Input'
+import { Method } from './Method'
 
-export function Inputs({ api, onChangeApiField, onClearApiField }) {
+export function Inputs({ api, onChangeApiField, onClearApiField, onChangeMethod, onCopyClip }) {
   const { id, label } = api
 
   return (
     <Fragment>
       <div>
+        <div className="d-flex align-items-center justify-content-around">
+          <button className='btn btn-sm btn-inputs' onClick={() => onCopyClip(api.id)}>Paste Curl</button>
+          <Method onChangeMethod={onChangeMethod} />
+          <button className='btn btn-sm btn-inputs' onClick={() => onCopyClip(api.id)}>Login</button>
+        </div>
         <Input
           label={`${label} - Endpoint`}
           name={`${id}-endpoint`}

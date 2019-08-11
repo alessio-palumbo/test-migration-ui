@@ -10,6 +10,7 @@ import { Footer } from './components/Footer'
 import { ReqForm } from './components/ReqForm'
 import { sendReq } from './components/Request'
 import jdd from './libs/jdd'
+import { Input } from './components/Input';
 
 class App extends Component {
   state = {
@@ -273,10 +274,8 @@ class App extends Component {
         })
       })
 
-      const { endpoint, token } = this.state[api]
-
       let startTimer = new Date()
-      sendReq({ endpoint, token })
+      sendReq(this.state[api])
         .then(result => {
           let elapsed = new Date() - startTimer
 
