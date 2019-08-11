@@ -1,8 +1,9 @@
 import React, { Fragment } from 'react'
+import _ from 'lodash'
 import { Input } from './Input'
 import { Method } from './Method'
 
-export function Inputs({ api, onChangeApiField, onClearApiField, onChangeMethod, onCopyClip, onPressEnter }) {
+export function Inputs({ api, onChangeApiField, onClearApiField, onChangeMethod, onCopyClip, onPressEnter, onUpdatePayload }) {
   const { id, label } = api
 
   return (
@@ -29,6 +30,20 @@ export function Inputs({ api, onChangeApiField, onClearApiField, onChangeMethod,
           onClearField={onClearApiField}
           onPressEnter={onPressEnter}
         />
+        {
+          (api.method === 'POST' || api.method === 'PUT') &&
+          (
+            <textarea
+              spellCheck="false"
+              className="form-control payload"
+              onChange={onUpdatePayload}
+              id="payloadleft"
+              name={api.id}
+              placeholder="Enter payload ..."
+              value={!_.isEmpty(api.payload) && api.payload || ''}
+            />
+          )
+        }
       </div>
     </Fragment>
   )

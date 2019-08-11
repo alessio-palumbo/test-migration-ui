@@ -13,8 +13,8 @@ export async function sendReq(props) {
     url: props.endpoint
   }
 
-  if (!_.isEmpty(props.payload)) {
-    config.data = props.payload
+  if (!_.isEmpty(props.payloadJson)) {
+    config.data = props.payloadJson
   }
 
   const response = await axios(config)

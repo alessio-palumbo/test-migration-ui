@@ -38,7 +38,7 @@ ul {
   box-shadow: none!important;
 }
 
-.btn:active, btn.active {
+.btn-inputs:active, btn-inputs.active {
   border: 2px solid #007787 !important;
 }
 
@@ -137,6 +137,17 @@ ul {
 .taCont textarea {
   overflow: hidden;
   overflow-y: scroll;
+  resize: none;
+}
+
+.payload {
+  font-size: 10px;
+  resize: none;
+  overflow-y: scroll;
+}
+
+textarea::-webkit-scrollbar {
+  display: none;
 }
 
 .ta-Gutter {

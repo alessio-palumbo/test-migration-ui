@@ -1,10 +1,7 @@
 import React from "react";
 
 export function Api({ api, onChangeField, onCopyCurl, onSendReq, onCopyResp }) {
-  const { id, label, endpoint, token, pid, curlCopied, jsonCopied, reqSent, resp, respError, host, time } = api
-
-  const credentials = token ? `-H 'Authorization: Bearer ${token}'` : `-H 'Host: ${host}' -H 'OSS-PrincipalId: ${pid}'`
-  const curl = `curl -H 'Accept: application/json' ${credentials} ${endpoint}`
+  const { id, label, endpoint, token, curlCopied, jsonCopied, reqSent, resp, respError, host, time } = api
 
   const hasRespError = !!respError
   let errCode = hasRespError && respError.status
@@ -24,7 +21,7 @@ export function Api({ api, onChangeField, onCopyCurl, onSendReq, onCopyResp }) {
         {time && <span className="elapsed">{`(${time} ms)`}</span>}
       </h5>
       <button
-        onClick={() => onCopyCurl({ id, curl })}
+        onClick={() => onCopyCurl(id)}
         className="btn btn-sm btn-custom"
         disabled={!(token || host) | !endpoint}
       >
