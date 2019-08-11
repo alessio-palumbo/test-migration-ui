@@ -241,8 +241,6 @@ class App extends Component {
         }
       })
 
-      console.log(updatedApi)
-
       return ({
         [api]: updatedApi
       })
@@ -258,6 +256,10 @@ class App extends Component {
 
   // Send http request to api
   onSendReq = api => {
+    if (this.state[api].endpoint === '' || this.state[api].token === '') {
+      return
+    }
+
     return new Promise((resolve, reject) => {
       this.setState(prevState => {
         const sending = {
@@ -314,6 +316,13 @@ class App extends Component {
           })
         })
     })
+  }
+
+  onPressEnter = e => {
+    const api = e.target.name.split('-')[0]
+    if (e.key === 'Enter') {
+      return this.onSendReq(api)
+    }
   }
 
   // Update res in textarea
@@ -455,6 +464,7 @@ class App extends Component {
             onClearApiField={this.onClearApiInput}
             onChangeMethod={this.onChangeMethod}
             onCopyClip={this.onCopyClip}
+            onPressEnter={this.onPressEnter}
           />
         </div>
         <Apis

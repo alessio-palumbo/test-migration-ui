@@ -2,7 +2,7 @@ import React, { Fragment } from 'react'
 import { Input } from './Input'
 import { Method } from './Method'
 
-export function Inputs({ api, onChangeApiField, onClearApiField, onChangeMethod, onCopyClip }) {
+export function Inputs({ api, onChangeApiField, onClearApiField, onChangeMethod, onCopyClip, onPressEnter }) {
   const { id, label } = api
 
   return (
@@ -19,6 +19,7 @@ export function Inputs({ api, onChangeApiField, onClearApiField, onChangeMethod,
           value={api.endpoint}
           onChangeField={onChangeApiField}
           onClearField={onClearApiField}
+          onPressEnter={onPressEnter}
         />
         <Input
           label={`${label} - Token`}
@@ -26,6 +27,7 @@ export function Inputs({ api, onChangeApiField, onClearApiField, onChangeMethod,
           value={api.token}
           onChangeField={onChangeApiField}
           onClearField={onClearApiField}
+          onPressEnter={onPressEnter}
         />
       </div>
     </Fragment>
