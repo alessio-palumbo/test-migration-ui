@@ -16,18 +16,10 @@ ul {
   color: white;
 }
 
-/* Dropdown */
-.dropB {
-  background-color: #6b787e !important;
-  color: #c4dce7 !important;
-  text-align-last: center;
-}
-
-/* input */
+/* Inputs */
 .input-container {
   position: relative;
 }
-
 
 .input-box {
   border: 1px solid #007787 !important;
@@ -41,9 +33,29 @@ ul {
   outline: none !important;
 }
 
-.clear-btn.focus, .clear-btn:focus {
+.btn:focus, .btn.focus {
   -webkit-box-shadow: none!important;
   box-shadow: none!important;
+}
+
+.btn-inputs:active, btn-inputs.active {
+  border: 2px solid #007787 !important;
+}
+
+/* #6b787e */
+.btn-method {
+  background-color: #00bbc3 !important;
+  text-align-last: center;
+}
+
+.btn-inputs {
+  outline: none !important;
+  background: transparent;
+  color: white !important;
+  border: 2px solid #c4dce7 !important;
+  border-radius: 15px !important;
+  width: 140px !important;
+  margin: 5px;
 }
 
 /* apis */
@@ -125,6 +137,17 @@ ul {
 .taCont textarea {
   overflow: hidden;
   overflow-y: scroll;
+  resize: none;
+}
+
+.payload {
+  font-size: 10px;
+  resize: none;
+  overflow-y: scroll;
+}
+
+textarea::-webkit-scrollbar {
+  display: none;
 }
 
 .ta-Gutter {

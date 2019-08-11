@@ -13,7 +13,7 @@ export function TextAreas({ leftApi, rightApi, onUpdateRes }) {
           id="textarealeft"
           name="left"
           placeholder={leftApi.respError || "Enter JSON to compare"}
-          value={leftApi.resp || leftApi.respError}
+          value={leftApi.respError || leftApi.resp}
         />
       </div>
       <div className="taCont right d-flex justify-content-around form-group">
@@ -25,7 +25,7 @@ export function TextAreas({ leftApi, rightApi, onUpdateRes }) {
           id="textarearight"
           name="right"
           placeholder={rightApi.parseError || "Enter JSON to compare"}
-          value={rightApi.resp || rightApi.respError}
+          value={rightApi.respError || rightApi.resp}
         />
       </div>
     </div>

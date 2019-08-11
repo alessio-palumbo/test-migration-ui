@@ -13,12 +13,17 @@ import jdd from './libs/jdd'
 
 class App extends Component {
   state = {
-    method: 'GET',
     left: {
       id: 'left',
       label: 'API 1',
+      method: 'GET',
       endpoint: '',
       token: '',
+      headers: {},
+      payload: '',
+      payloadJson: '',
+      payloadError: null,
+      curl: '',
       curlCopied: false,
       jsonCopied: false,
       reqSent: false,
@@ -32,8 +37,14 @@ class App extends Component {
     right: {
       id: 'right',
       label: 'API 2',
+      method: 'GET',
       endpoint: '',
       token: '',
+      headers: {},
+      payload: '',
+      payloadJson: '',
+      payloadError: null,
+      curl: '',
       curlCopied: false,
       jsonCopied: false,
       reqSent: false,
@@ -126,11 +137,16 @@ class App extends Component {
     })
   }
 
-  // Change value of method and stage
-  onChangeMethod = event => {
-
-    this.setState({
-      method: event.target.value
+  // Change value of api method
+  onChangeMethod = (event, api) => {
+    let updatedMethod = event.target.value
+    this.setState(prevState => {
+      return ({
+        [api]: {
+          ...prevState[api],
+          method: updatedMethod
+        }
+      })
     })
   }
 
@@ -171,16 +187,6 @@ class App extends Component {
     })
   }
 
-  // Copy JSON to clipboard
-  copyToClipboard = text => {
-    const textField = document.createElement('textarea')
-    textField.innerText = text
-    document.body.appendChild(textField)
-    textField.select()
-    document.execCommand('copy')
-    textField.remove()
-  }
-
   // Change label when button is clicked for a set time
   updateBtnMessage = (api, btn) => {
     this.setState(prevState => {
@@ -208,10 +214,109 @@ class App extends Component {
     }, 800)
   }
 
-  // Copy to clipboard
-  onCurlCopy = ({ id, curl }) => {
+  // Copy JSON to clipboard
+  copyToClipboard = text => {
+    const textField = document.createElement('textarea')
+    textField.innerText = text
+    document.body.appendChild(textField)
+    textField.select()
+    document.execCommand('copy')
+    textField.remove()
+  }
+
+  buildCurl = api => {
+    let curl = `curl '${api.endpoint}'`
+    if (api.method !== '' && api.method !== 'GET' && api.method !== 'POST') {
+      curl += ` -X ${api.method}`
+    }
+    curl += ` -H 'Accept: application/json' -H 'Content-Type: application/json;charset=UTF-8' -H 'Authorization: Bearer ${api.token}'`
+
+    if (api.payloadJson !== '') {
+      curl += ` -d ${api.payloadJson}`
+    }
+    return curl
+  }
+
+  // Copy curl to clipboard or build and copy curl
+  onCurlCopy = id => {
+    let api = this.state[id]
+    let curl = this.buildCurl(api)
+
     this.copyToClipboard(curl)
     this.updateBtnMessage(id, 'curlCopied')
+  }
+
+  // Format a valid json object into a prettified string
+  formatJSON = json => {
+    const config = jdd.createConfig()
+    jdd.formatAndDecorate(config, json)
+
+    return config.out.trim()
+  }
+
+  // Copy curl from clipboard and update api fields
+  onCopyClip = async api => {
+    const curl = await navigator.clipboard.readText();
+
+    this.setState(prevState => {
+      const updatedApi = {
+        ...prevState[api],
+        method: '',
+        curl: curl
+      }
+
+      curl.replace(/\'/g, '').split(' -').map(line => {
+        switch (line.substr(0, 2)) {
+          case 'H ':
+            let splitHeader = line.substr(2).trim().split(": ")
+            if (splitHeader[0] === 'Authorization') updatedApi.token = splitHeader[1].split(' ')[1]
+            return updatedApi.headers[splitHeader[0]] = splitHeader[1]
+          case 'X ':
+            return updatedApi.method = line.substr(1).trim()
+          case 'd ':
+          case '-d':
+            updatedApi.method = !updatedApi.method && 'POST'
+            updatedApi.payloadJson = line.substr(line.indexOf(' ') + 1)
+            updatedApi.payload = this.formatJSON(JSON.parse(line.substr(line.indexOf(' ') + 1)))
+            return
+        }
+
+        if (line.indexOf('http') !== -1) {
+          return updatedApi.endpoint = line.substr(line.indexOf('http'))
+        }
+      })
+
+      return ({
+        [api]: updatedApi
+      })
+
+    })
+  }
+
+  onPressEnter = e => {
+    const api = e.target.name.split('-')[0]
+    if (e.key === 'Enter') {
+      return this.onSendReq(api)
+    }
+  }
+
+  onUpdatePayload = event => {
+    const api = event.target.name
+    const input = event.target.value
+    const [parsed, error] = this.validateJSON(input)
+
+    this.setState(prevState => {
+      const updatedApi = {
+        ...prevState[api],
+        payload: parsed ? this.formatJSON(parsed) : input,
+        payloadJson: parsed && JSON.stringify(parsed),
+        payloadError: error
+      }
+
+      return {
+        [api]: updatedApi
+      }
+    })
   }
 
   // Copy JSON response to clipboard
@@ -222,37 +327,40 @@ class App extends Component {
 
   // Send http request to api
   onSendReq = api => {
-    return new Promise((resolve, reject) => {
-      this.setState(prevState => {
-        const sending = {
-          ...prevState[api],
-          reqSent: true,
-          resp: '',
-          respJson: '',
-          respError: null,
-          time: ''
-        }
+    if (this.state[api].endpoint === '' ||
+      this.state[api].token === '' ||
+      this.state[api].payloadJson === '') {
+      return
+    }
 
-        return ({
-          [api]: sending
-        })
+    this.setState(prevState => {
+      const sending = {
+        ...prevState[api],
+        reqSent: true,
+        resp: '',
+        respJson: '',
+        respError: null,
+        time: ''
+      }
+
+      return ({
+        [api]: sending
       })
+    })
 
-      const { endpoint, token } = this.state[api]
-
+    return new Promise((resolve, reject) => {
       let startTimer = new Date()
-      sendReq({ endpoint, token })
+      sendReq(this.state[api])
         .then(result => {
           let elapsed = new Date() - startTimer
 
           // create formatted response to be displayed in textareas
-          const config = jdd.createConfig()
-          jdd.formatAndDecorate(config, result)
+          const formattedResp = this.formatJSON(result)
           this.setState(prevState => {
             const updatedApi = {
               ...prevState[api],
               reqSent: false,
-              resp: config.out,
+              resp: formattedResp,
               respJson: JSON.stringify(result),
               respError: null,
               time: elapsed
@@ -401,7 +509,7 @@ class App extends Component {
           msg: reason + ' : ' + msg.substr(msg.indexOf('Expecting')),
           line: reason.split(' ').pop()
         }
-        return ['Invalid JSON', error]
+        return ['', error]
       }
     }
   }
@@ -420,6 +528,9 @@ class App extends Component {
             onChangeApiField={this.onChangeApiInputField}
             onClearApiField={this.onClearApiInput}
             onChangeMethod={this.onChangeMethod}
+            onCopyClip={this.onCopyClip}
+            onPressEnter={this.onPressEnter}
+            onUpdatePayload={this.onUpdatePayload}
           />
         </div>
         <Apis
