@@ -13,7 +13,7 @@ export async function sendReq(props) {
     url: props.endpoint
   }
 
-  if (!_.isEmpty(props.payloadJson)) {
+  if (props.payloadJson) {
     config.data = props.payloadJson
   }
 

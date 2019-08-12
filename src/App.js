@@ -130,23 +130,32 @@ class App extends Component {
         token: lastRightToken
       }
 
-      return ({
+      return {
         left: cachedLeft,
         right: cachedRight
-      })
+      }
     })
   }
 
   // Change value of api method
   onChangeMethod = (event, api) => {
-    let updatedMethod = event.target.value
+    const updatedMethod = event.target.value
+
     this.setState(prevState => {
-      return ({
-        [api]: {
-          ...prevState[api],
-          method: updatedMethod
-        }
-      })
+      let updatedApi = {
+        ...prevState[api],
+        method: updatedMethod
+      }
+
+      if (updatedApi.method !== 'PUT' || updatedApi.method !== 'POST') {
+        updatedApi.payload = ''
+        updatedApi.payloadJson = ''
+        updatedApi.payloadError = null
+      }
+
+      return {
+        [api]: updatedApi
+      }
     })
   }
 
@@ -327,9 +336,21 @@ class App extends Component {
 
   // Send http request to api
   onSendReq = api => {
-    if (this.state[api].endpoint === '' ||
-      this.state[api].token === '' ||
-      this.state[api].payloadJson === '') {
+    const currentApi = this.state[api]
+    if (!currentApi.endpoint || !currentApi.token || currentApi.payloadError) {
+      return
+    }
+
+    if (
+      (currentApi.method === 'POST' || currentApi.method === 'PUT') && !currentApi.payloadJson) {
+      this.setState(prevState => {
+        return {
+          [api]: {
+            ...prevState[api],
+            payloadError: 'Missing Payload!'
+          }
+        }
+      })
       return
     }
 

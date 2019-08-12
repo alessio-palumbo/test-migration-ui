@@ -146,6 +146,10 @@ ul {
   overflow-y: scroll;
 }
 
+.payload-err::placeholder {
+  color: red !important;
+}
+
 textarea::-webkit-scrollbar {
   display: none;
 }
