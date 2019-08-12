@@ -313,6 +313,9 @@ class App extends Component {
     const api = event.target.name
     const input = event.target.value
     const [parsed, error] = this.validateJSON(input)
+    if (error !== null) {
+      error.display = false
+    }
 
     this.setState(prevState => {
       const updatedApi = {
@@ -337,21 +340,26 @@ class App extends Component {
   // Send http request to api
   onSendReq = api => {
     const currentApi = this.state[api]
-    if (!currentApi.endpoint || !currentApi.token || currentApi.payloadError) {
+    if (!currentApi.endpoint || !currentApi.token) {
       return
     }
 
-    if (
-      (currentApi.method === 'POST' || currentApi.method === 'PUT') && !currentApi.payloadJson) {
-      this.setState(prevState => {
-        return {
+    let payloadError = currentApi.payloadError
+    if ((currentApi.method === 'POST' || currentApi.method === 'PUT') && (payloadError || !currentApi.payloadJson)) {
+      if (payloadError) {
+        payloadError.display = true
+      } else {
+        payloadError = 'Missing Payload!'
+      }
+
+      return this.setState(prevState => {
+        return ({
           [api]: {
             ...prevState[api],
-            payloadError: 'Missing Payload!'
+            payloadError: payloadError
           }
-        }
+        })
       })
-      return
     }
 
     this.setState(prevState => {

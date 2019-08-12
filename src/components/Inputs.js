@@ -1,5 +1,4 @@
 import React, { Fragment } from 'react'
-import _ from 'lodash'
 import { Input } from './Input'
 import { Method } from './Method'
 
@@ -13,22 +12,17 @@ export function Inputs({
   onUpdatePayload
 }) {
   const { id, label } = api
+  console.log(api.payloadError)
 
   return (
     <Fragment>
       <div>
         <div className="d-flex align-items-center justify-content-around">
-          <button
-            className="btn btn-sm btn-inputs"
-            onClick={() => onCopyClip(api.id)}
-          >
-            Paste Curl
+          <button className="btn btn-sm btn-inputs" onClick={() => onCopyClip(api.id)}>
+           Paste Curl
           </button>
           <Method api={api} onChangeMethod={onChangeMethod} />
-          <button
-            className="btn btn-sm btn-inputs"
-            onClick={() => onCopyClip(api.id)}
-          >
+          <button className="btn btn-sm btn-inputs" onClick={() => onCopyClip(api.id)}>
             Login
           </button>
         </div>
@@ -49,16 +43,18 @@ export function Inputs({
           onPressEnter={onPressEnter}
         />
         {(api.method === 'POST' || api.method === 'PUT') && (
-          <textarea
-            spellCheck="false"
-            className={`form-control payload ${api.payloadError &&
-              'payload-err'}`}
-            onChange={onUpdatePayload}
-            id="payloadleft"
-            name={api.id}
-            placeholder={api.payloadError || 'Enter payload ...'}
-            value={(!_.isEmpty(api.payload) && api.payload) || ''}
-          />
+          <Fragment>
+            <div className={`text-danger ${(!api.payloadError || !api.payloadError.display) && 'invisible'}`}>Parse Error at line: {api.payloadError && api.payloadError.line}</div>
+            <textarea
+              spellCheck="false"
+              className={`form-control payload ${api.payloadError && 'payload-err'}`}
+              onChange={onUpdatePayload}
+              id="payloadleft"
+              name={api.id}
+              placeholder={api.payloadError || 'Enter payload ...'}
+              value={api.payload}
+           />
+          </Fragment>
         )}
       </div>
     </Fragment>
