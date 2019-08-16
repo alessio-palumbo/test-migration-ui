@@ -8,7 +8,7 @@ import { Apis } from './components/Apis'
 import { Diff } from './components/Diff'
 import { Footer } from './components/Footer'
 import { ReqForm } from './components/ReqForm'
-import { sendReq } from './components/Request'
+import { sendReq, loginOSSUser, loginOSSCompany } from './components/Request'
 import jdd from './libs/jdd'
 
 class App extends Component {
@@ -19,6 +19,13 @@ class App extends Component {
       method: 'GET',
       endpoint: '',
       token: '',
+      isLogin: false,
+      env: '',
+      login: '',
+      password: '',
+      loginType: 'U',
+      userToken: '',
+      companies: [],
       headers: {},
       payload: '',
       payloadJson: '',
@@ -40,6 +47,13 @@ class App extends Component {
       method: 'GET',
       endpoint: '',
       token: '',
+      isLogin: false,
+      env: '',
+      login: '',
+      password: '',
+      loginType: 'U',
+      userToken: '',
+      companies: [],
       headers: {},
       payload: '',
       payloadJson: '',
@@ -137,6 +151,21 @@ class App extends Component {
     })
   }
 
+  // Switch token from user to companies, if any
+  onChangeLoginType = (event, api) => {
+    const [updatedLoginType, updatedToken] = event.target.value.split('|')
+
+    this.setState(prevState => {
+      return {
+        [api]: {
+          ...prevState[api],
+          loginType: updatedLoginType,
+          token: updatedToken,
+        }
+      }
+    })
+  }
+
   // Change value of api method
   onChangeMethod = (event, api) => {
     const updatedMethod = event.target.value
@@ -156,6 +185,19 @@ class App extends Component {
       return {
         [api]: updatedApi
       }
+    })
+  }
+
+  onChangeEnv = (event, api) => {
+    const updatedEnv = event.target.value
+
+    this.setState(prevState => {
+      return ({
+        [api]: {
+          ...prevState[api],
+          env: updatedEnv
+        }
+      })
     })
   }
 
@@ -263,6 +305,18 @@ class App extends Component {
     return config.out.trim()
   }
 
+  // OnLogin allow the user to login and retrieve the token from the response
+  onLogin = api => {
+    this.setState(prevState => {
+      return ({
+        [api]: {
+          ...prevState[api],
+          isLogin: !prevState[api].isLogin
+        }
+      })
+    })
+  }
+
   // Copy curl from clipboard and update api fields
   onCopyClip = async api => {
     const curl = await navigator.clipboard.readText();
@@ -270,21 +324,21 @@ class App extends Component {
     this.setState(prevState => {
       const updatedApi = {
         ...prevState[api],
-        method: '',
+        method: 'GET',
         curl: curl
       }
 
       curl.replace(/\'/g, '').split(' -').map(line => {
         switch (line.substr(0, 2)) {
           case 'H ':
-            let splitHeader = line.substr(2).trim().split(": ")
+            let splitHeader = line.substr(2).replace(/['"]+/g, '').split(": ")
             if (splitHeader[0] === 'Authorization') updatedApi.token = splitHeader[1].split(' ')[1]
             return updatedApi.headers[splitHeader[0]] = splitHeader[1]
           case 'X ':
             return updatedApi.method = line.substr(1).trim()
           case 'd ':
           case '-d':
-            updatedApi.method = !updatedApi.method && 'POST'
+            updatedApi.method = updatedApi.method === 'GET' && 'POST'
             updatedApi.payloadJson = line.substr(line.indexOf(' ') + 1)
             updatedApi.payload = this.formatJSON(JSON.parse(line.substr(line.indexOf(' ') + 1)))
             return
@@ -337,10 +391,77 @@ class App extends Component {
     this.updateBtnMessage(api, 'jsonCopied')
   }
 
+  onClearPreviousReq = api => {
+    return this.setState(prevState => {
+      const sending = {
+        ...prevState[api],
+        reqSent: true,
+        resp: '',
+        respJson: '',
+        respError: null,
+        time: ''
+      }
+
+      return ({
+        [api]: sending
+      })
+    })
+  }
+
+  onSendLoginReq = api => {
+    this.onClearPreviousReq(api)
+
+    return new Promise((resolve, reject) => {
+      let startTimer = new Date()
+      loginOSSUser(this.state[api])
+        .then(result => {
+          let elapsed = new Date() - startTimer
+
+          // retrieve token from response
+          const token = result.access_token
+          this.setState(prevState => {
+            const updatedApi = {
+              ...prevState[api],
+              reqSent: false,
+              token: token,
+              userToken: token,
+              isLogin: false,
+              time: elapsed
+            }
+
+            return ({
+              [api]: updatedApi
+            })
+          })
+          resolve('Success')
+        })
+        .catch(error => {
+          this.setState(prevState => {
+            const updateApiErr = {
+              ...prevState[api],
+              reqSent: false,
+              respError: error
+            }
+
+            return ({
+              [api]: updateApiErr
+            })
+          })
+        })
+    })
+  }
+
   // Send http request to api
   onSendReq = api => {
     const currentApi = this.state[api]
-    if (!currentApi.endpoint || !currentApi.token) {
+    if (currentApi.isLogin) {
+      if (currentApi.login && currentApi.password) {
+        return this.onSendLoginReq(api)
+      }
+      return
+    }
+
+    if (!currentApi.endpoint) {
       return
     }
 
@@ -362,20 +483,7 @@ class App extends Component {
       })
     }
 
-    this.setState(prevState => {
-      const sending = {
-        ...prevState[api],
-        reqSent: true,
-        resp: '',
-        respJson: '',
-        respError: null,
-        time: ''
-      }
-
-      return ({
-        [api]: sending
-      })
-    })
+    this.onClearPreviousReq(api)
 
     return new Promise((resolve, reject) => {
       let startTimer = new Date()
@@ -557,8 +665,11 @@ class App extends Component {
             onChangeApiField={this.onChangeApiInputField}
             onClearApiField={this.onClearApiInput}
             onChangeMethod={this.onChangeMethod}
+            onChangeEnv={this.onChangeEnv}
             onCopyClip={this.onCopyClip}
+            onLogin={this.onLogin}
             onPressEnter={this.onPressEnter}
+            onChangeLoginType={this.onChangeLoginType}
             onUpdatePayload={this.onUpdatePayload}
           />
         </div>

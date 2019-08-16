@@ -381,16 +381,16 @@ const jdd = {
   },
 
   /**
-   * When we parse the JSON string we end up removing the escape strings when we parse it 
-   * into objects.  This results in invalid JSON if we insert those strings back into the 
-   * generated JSON.  We also need to look out for characters that change the line count 
-   * like new lines and carriage returns.  
-   * 
-   * This function puts those escaped values back when we generate the JSON output for the 
+   * When we parse the JSON string we end up removing the escape strings when we parse it
+   * into objects.  This results in invalid JSON if we insert those strings back into the
+   * generated JSON.  We also need to look out for characters that change the line count
+   * like new lines and carriage returns.
+   *
+   * This function puts those escaped values back when we generate the JSON output for the
    * well known escape strings in JSON.  It handles properties and values.
    *
-   * This function does not handle unicode escapes.  Unicode escapes are optional in JSON 
-   * and the JSON output is still valid with a unicode character in it.  
+   * This function does not handle unicode escapes.  Unicode escapes are optional in JSON
+   * and the JSON output is still valid with a unicode character in it.
    */
   unescapeString: function (val) {
     if (val) {

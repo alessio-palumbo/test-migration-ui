@@ -1,6 +1,6 @@
 import React from "react";
 
-export function Input({ label, value, name, onChangeField, onClearField, onPressEnter }) {
+export function Input({ label, value, type, name, onChangeField, onClearField, onPressEnter }) {
   return (
     <p>
       <label className="text-white input-container">
@@ -8,7 +8,7 @@ export function Input({ label, value, name, onChangeField, onClearField, onPress
         <input
           className="form-control pr-5 input-box"
           value={value || ''}
-          type="text"
+          type={type || 'text'}
           name={name}
           onChange={onChangeField}
           onKeyPress={(e) => onPressEnter(e)}

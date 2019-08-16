@@ -28,9 +28,21 @@ ul {
 
 .clear-btn {
   position: absolute;
-  right: 0px;
-  bottom: 0px;
+  right: 0;
+  bottom: 0;
   outline: none !important;
+}
+
+.profile-btn {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  outline: none !important;
+  color: #868E96;
+  background: white;
+  border: 1px solid #868E96 !important;
+  padding-right: 3px !important;
 }
 
 .btn:focus, .btn.focus {
@@ -164,7 +176,7 @@ textarea::-webkit-scrollbar {
 
 .ta-Gutter p {
   margin: 0;
-  padding: 0;
+  padding-right: 5px;
   font-size: 14px;
   line-height: 21px;
   text-align: right;

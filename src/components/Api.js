@@ -1,7 +1,9 @@
 import React from "react";
 
 export function Api({ api, onChangeField, onCopyCurl, onSendReq, onCopyResp }) {
-  const { id, label, endpoint, token, curlCopied, jsonCopied, reqSent, resp, respError, host, time } = api
+  const { id, label, endpoint, token, curlCopied, jsonCopied, reqSent, resp, respError, time, isLogin, login, password } = api
+
+  const hasAllFields = isLogin ? (login && password) : (endpoint && token)
 
   const hasRespError = !!respError
   let errCode = hasRespError && respError.status
@@ -23,11 +25,11 @@ export function Api({ api, onChangeField, onCopyCurl, onSendReq, onCopyResp }) {
       <button
         onClick={() => onCopyCurl(id)}
         className="btn btn-sm btn-custom"
-        disabled={!(token || host) | !endpoint}
+        disabled={!endpoint}
       >
         {curlCopied ? 'Copied!' : 'Copy Curl'}
       </button>
-      <button onClick={onSendReq} className="btn btn-sm btn-custom btn-custom-2" disabled={reqSent}>
+      <button onClick={onSendReq} className="btn btn-sm btn-custom btn-custom-2" disabled={reqSent || !hasAllFields}>
         {
           reqSent ? "Sending..." : "Send Request"
         }
