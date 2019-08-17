@@ -26,6 +26,20 @@ ul {
   min-width: 300px !important;
 }
 
+.baseUrl {
+  background: #007787;
+  width: 80px;
+  max-width: 80px;
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  top: 0;
+}
+
+.base {
+  padding-left: 82px !important;
+}
+
 .clear-btn {
   position: absolute;
   right: 0;

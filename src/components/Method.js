@@ -17,7 +17,7 @@ export function Method({ api, onChangeMethod, onChangeEnv }) {
               >
                 {
                   process.env.REACT_APP_ENVS.split(',').map(env => {
-                    return <option value={env}>{env.toUpperCase()}</option>
+                    return <option key={env} value={env}>{env.toUpperCase()}</option>
                   })
                 }
               </select>

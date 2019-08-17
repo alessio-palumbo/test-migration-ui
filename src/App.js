@@ -21,6 +21,7 @@ class App extends Component {
       token: '',
       isLogin: false,
       env: '',
+      baseUrl: '',
       login: '',
       password: '',
       loginId: '',
@@ -50,6 +51,7 @@ class App extends Component {
       token: '',
       isLogin: false,
       env: '',
+      baseUrl: '',
       login: '',
       password: '',
       loginId: '',
@@ -149,11 +151,21 @@ class App extends Component {
           [api]: {
             ...prevState[api],
             token: updatedToken,
-            loginId: updatedId
+            loginId: updatedId,
+            baseUrl: getUrlFromEnv(prevState[api].logins[updatedId].env)
           }
         })
       })
     }
+
+    this.setState(prevState => {
+      return ({
+        [api]: {
+          ...prevState[api],
+          token: 'Logging...'
+        }
+      })
+    })
 
     loginOSSCompany(updatedId, this.state[api].userToken, this.state[api].env)
       .then(result => {
@@ -162,7 +174,8 @@ class App extends Component {
           const updatedApi = {
             ...prevState[api],
             token: token,
-            loginId: updatedId
+            loginId: updatedId,
+            baseUrl: getUrlFromEnv(prevState[api].logins[updatedId].env)
           }
           updatedApi.logins[updatedId].token = token
 
@@ -241,6 +254,11 @@ class App extends Component {
     const input = event.target.name
 
     const [api, field] = input.split('-')
+    // Remove any login related data when the user clears the token field
+    if (field === 'token') {
+      this.resetLoginData(api)
+    }
+
     this.setState(prevState => {
       const clearedInput = {
         ...prevState[api],
@@ -332,9 +350,25 @@ class App extends Component {
     })
   }
 
+  resetLoginData = (api) => {
+    this.setState(prevState => {
+      return ({
+        [api]: {
+          ...prevState[api],
+          baseUrl: '',
+          logins: {},
+          loginId: '',
+          username: '',
+        }
+      })
+    })
+  }
+
   // Copy curl from clipboard and update api fields
   onCopyClip = async api => {
     const curl = await navigator.clipboard.readText();
+
+    this.resetLoginData(api)
 
     this.setState(prevState => {
       const updatedApi = {
@@ -414,6 +448,7 @@ class App extends Component {
         resp: '',
         respJson: '',
         respError: null,
+        parseError: null,
         time: ''
       }
 
@@ -432,27 +467,31 @@ class App extends Component {
         // Do not process logins if the user has a single one
         if (user.companies.length === 0) return
 
-        const logins = {
-          [user.id]: {
-            name: user.name,
-            role: 'worker',
-            token: currentApi.token
-          }
-        }
-
-        user.companies.map(c => {
-          logins[c.id] = {
-            name: c.name,
-            role: c.role,
-            token: '',
-          }
-        })
-
         this.setState(prevState => {
+          const env = prevState[api].env
+          const logins = {
+            [user.id]: {
+              name: user.name,
+              role: 'worker',
+              token: prevState[api].token,
+              env: env
+            }
+          }
+
+          user.companies.map(c => {
+            logins[c.id] = {
+              name: c.name,
+              role: c.role,
+              token: '',
+              env: env
+            }
+          })
+
           const updatedApi = {
             ...prevState[api],
             username: user.name,
-            logins: logins
+            logins: logins,
+            baseUrl: getUrlFromEnv(env)
           }
 
           return ({
@@ -475,7 +514,8 @@ class App extends Component {
   onSendLoginReq = api => {
     this.onClearPreviousReq(api)
 
-    loginOSSUser(this.state[api])
+    const env = this.state[api].env || process.env.REACT_APP_DEFAULT_ENV
+    loginOSSUser(env, this.state[api].login, this.state[api].password)
       .then(result => {
         const token = result.access_token
 
@@ -486,13 +526,15 @@ class App extends Component {
             token: token,
             userToken: token,
             isLogin: false,
-            endpoint: getUrlFromEnv(prevState[api].env)
+            env: env,
+            baseUrl: getUrlFromEnv(env),
+            endpoint: ''
           }
 
           // store successful login details in localstorage
           const storedLogin = {
             ...JSON.parse(localStorage.getItem(api)),
-            env: updatedApi.env,
+            env: env,
             login: updatedApi.login,
             password: updatedApi.password
           }
@@ -616,7 +658,7 @@ class App extends Component {
     this.setState(prevState => {
       const updatedApi = {
         ...prevState[api],
-        resp: input,
+        resp: parsed ? this.formatJSON(parsed) : input,
         respJson: JSON.stringify(parsed),
         parseError: error
       }

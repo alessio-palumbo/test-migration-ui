@@ -20,7 +20,7 @@ export function Token({ api, onChangeField, onClearField, onPressEnter, onChange
                 {
                   Object.entries(logins).map((login) => {
                     let role = login[1].role.substr(0, 1).toUpperCase()
-                    return <option value={`${login[0]}|${login[1].token}`}>{role}</option>
+                    return <option key={login[0]} value={`${login[0]}|${login[1].token}`}>{role}</option>
                   })
                 }
               </select>

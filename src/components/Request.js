@@ -23,8 +23,8 @@ export async function sendReq(props) {
   return response.data
 }
 
-export async function loginOSSUser(props) {
-  const baseUrl = getUrlFromEnv(props.env)
+export async function loginOSSUser(env, login, password) {
+  const baseUrl = getUrlFromEnv(env)
 
   const config = {
     method: 'POST',
@@ -33,8 +33,8 @@ export async function loginOSSUser(props) {
     data: {
       'client_id': process.env.REACT_APP_CLIENT_ID,
       'client_secret': process.env.REACT_APP_CLIENT_SECRET,
-      'username': props.login,
-      'password': props.password,
+      'username': login,
+      'password': password,
       'grant_type': 'password'
     }
   }
@@ -82,5 +82,5 @@ export const getUrlFromEnv = env => {
 
   return env === 'prod'
     ? process.env.REACT_APP_BASE_PROD
-    : base.replace('ENV', (env || 'pg-1'))
+    : base.replace('ENV', env)
 }

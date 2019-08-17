@@ -2,6 +2,7 @@ import React, { Fragment } from 'react'
 import { Input } from './Input'
 import { Method } from './Method'
 import { Token } from './Token'
+import { Endpoint } from './Endpoint'
 
 export function Inputs({
   api,
@@ -53,10 +54,8 @@ export function Inputs({
             )
             : (
               <Fragment>
-                <Input
-                  label='Url'
-                  name={`${id}-endpoint`}
-                  value={api.endpoint}
+                <Endpoint
+                  api={api}
                   onChangeField={onChangeApiField}
                   onClearField={onClearApiField}
                   onPressEnter={onPressEnter}
