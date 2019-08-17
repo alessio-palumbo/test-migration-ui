@@ -24,13 +24,12 @@ export async function sendReq(props) {
 }
 
 export async function loginOSSUser(props) {
+  const baseUrl = getUrlFromEnv(props.env)
 
   const config = {
     method: 'POST',
     headers: defaultHeaders,
-    url: props.env === 'prod'
-      ? process.env.REACT_APP_LOGIN_PROD
-      : process.env.REACT_APP_LOGIN_URL.replace('ENV', (props.env || 'pg-1')),
+    url: baseUrl + 'v2/login',
     data: {
       'client_id': process.env.REACT_APP_CLIENT_ID,
       'client_secret': process.env.REACT_APP_CLIENT_SECRET,
@@ -44,21 +43,44 @@ export async function loginOSSUser(props) {
   return response.data
 }
 
-export async function loginOSSCompany(props) {
+export async function loginOSSCompany(companyId, userToken, env) {
+  const baseUrl = getUrlFromEnv(env)
 
   const config = {
     method: 'POST',
     headers: defaultHeaders,
-    url: process.env.REACT_APP_LOGIN_URL.replace('ENV', (props.env || 'pg-1')),
+    url: baseUrl + 'v2/login',
     data: {
       'client_id': process.env.REACT_APP_CLIENT_ID,
       'client_secret': process.env.REACT_APP_CLIENT_SECRET,
-      'access_token': props.userToken,
-      'company_id': props.companyId,
+      'access_token': userToken,
+      'company_id': companyId,
       'grant_type': 'token'
     }
   }
 
   const response = await axios(config)
   return response.data
+}
+
+export async function getUserCompanies(props) {
+  const baseUrl = getUrlFromEnv(props.env)
+  defaultHeaders.Authorization = `Bearer ${props.token}`
+
+  const config = {
+    method: 'GET',
+    headers: defaultHeaders,
+    url: baseUrl + process.env.REACT_APP_USER_COMPANIES,
+  }
+
+  const response = await axios(config)
+  return response.data
+}
+
+export const getUrlFromEnv = env => {
+  const base = process.env.REACT_APP_BASE_URL || ''
+
+  return env === 'prod'
+    ? process.env.REACT_APP_BASE_PROD
+    : base.replace('ENV', (env || 'pg-1'))
 }

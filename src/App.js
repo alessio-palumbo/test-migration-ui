@@ -8,7 +8,7 @@ import { Apis } from './components/Apis'
 import { Diff } from './components/Diff'
 import { Footer } from './components/Footer'
 import { ReqForm } from './components/ReqForm'
-import { sendReq, loginOSSUser, loginOSSCompany } from './components/Request'
+import { sendReq, loginOSSUser, loginOSSCompany, getUserCompanies, getUrlFromEnv } from './components/Request'
 import jdd from './libs/jdd'
 
 class App extends Component {
@@ -23,9 +23,10 @@ class App extends Component {
       env: '',
       login: '',
       password: '',
-      loginType: 'U',
+      loginId: '',
+      username: '',
       userToken: '',
-      companies: [],
+      logins: {},
       headers: {},
       payload: '',
       payloadJson: '',
@@ -51,9 +52,10 @@ class App extends Component {
       env: '',
       login: '',
       password: '',
-      loginType: 'U',
+      loginId: '',
+      username: '',
       userToken: '',
-      companies: [],
+      logins: {},
       headers: {},
       payload: '',
       payloadJson: '',
@@ -126,44 +128,59 @@ class App extends Component {
   }
 
   getCachedData() {
-    const lastLeftEndpoint = localStorage.getItem('left-endpoint')
-    const lastLeftToken = localStorage.getItem('left-token')
-    const lastRightEndpoint = localStorage.getItem('right-endpoint')
-    const lastRightToken = localStorage.getItem('right-token')
+    const cachedLeft = JSON.parse(localStorage.getItem('left'))
+    const cachedRight = JSON.parse(localStorage.getItem('right'))
 
     this.setState(prevState => {
-      const cachedLeft = {
-        ...prevState.left,
-        endpoint: lastLeftEndpoint,
-        token: lastLeftToken
-      }
-
-      const cachedRight = {
-        ...prevState.right,
-        endpoint: lastRightEndpoint,
-        token: lastRightToken
-      }
-
-      return {
-        left: cachedLeft,
-        right: cachedRight
-      }
+      return ({
+        left: { ...prevState.left, ...cachedLeft },
+        right: { ...prevState.right, ...cachedRight }
+      })
     })
   }
 
   // Switch token from user to companies, if any
   onChangeLoginType = (event, api) => {
-    const [updatedLoginType, updatedToken] = event.target.value.split('|')
+    let [updatedId, updatedToken] = event.target.value.split('|')
 
-    this.setState(prevState => {
-      return {
-        [api]: {
-          ...prevState[api],
-          loginType: updatedLoginType,
-          token: updatedToken,
-        }
-      }
-    })
+    if (updatedToken) {
+      return this.setState(prevState => {
+        return ({
+          [api]: {
+            ...prevState[api],
+            token: updatedToken,
+            loginId: updatedId
+          }
+        })
+      })
+    }
+
+    loginOSSCompany(updatedId, this.state[api].userToken, this.state[api].env)
+      .then(result => {
+        let token = result.access_token
+        this.setState(prevState => {
+          const updatedApi = {
+            ...prevState[api],
+            token: token,
+            loginId: updatedId
+          }
+          updatedApi.logins[updatedId].token = token
+
+          return ({
+            [api]: updatedApi
+          })
+        })
+      })
+      .catch(error => {
+        this.setState(prevState => {
+          return ({
+            [api]: {
+              ...prevState[api],
+              respError: error
+            }
+          })
+        })
+      })
   }
 
   // Change value of api method
@@ -205,8 +222,6 @@ class App extends Component {
   onChangeApiInputField = event => {
     const input = event.target.name
     const text = event.target.value.trim()
-
-    localStorage.setItem(input, text)
 
     const [api, field] = input.split('-')
     this.setState(prevState => {
@@ -408,47 +423,100 @@ class App extends Component {
     })
   }
 
+  getCompanies = api => {
+    // send get user with companies and set user name, then if companies populate select
+    const currentApi = this.state[api]
+    getUserCompanies(currentApi)
+      .then(result => {
+        const user = result.user
+        // Do not process logins if the user has a single one
+        if (user.companies.length === 0) return
+
+        const logins = {
+          [user.id]: {
+            name: user.name,
+            role: 'worker',
+            token: currentApi.token
+          }
+        }
+
+        user.companies.map(c => {
+          logins[c.id] = {
+            name: c.name,
+            role: c.role,
+            token: '',
+          }
+        })
+
+        this.setState(prevState => {
+          const updatedApi = {
+            ...prevState[api],
+            username: user.name,
+            logins: logins
+          }
+
+          return ({
+            [api]: updatedApi
+          })
+        })
+      })
+      .catch(error => {
+        this.setState(prevState => {
+          return ({
+            [api]: {
+              ...prevState[api],
+              respError: error
+            }
+          })
+        })
+      })
+  }
+
   onSendLoginReq = api => {
     this.onClearPreviousReq(api)
 
-    return new Promise((resolve, reject) => {
-      let startTimer = new Date()
-      loginOSSUser(this.state[api])
-        .then(result => {
-          let elapsed = new Date() - startTimer
+    loginOSSUser(this.state[api])
+      .then(result => {
+        const token = result.access_token
 
-          // retrieve token from response
-          const token = result.access_token
-          this.setState(prevState => {
-            const updatedApi = {
-              ...prevState[api],
-              reqSent: false,
-              token: token,
-              userToken: token,
-              isLogin: false,
-              time: elapsed
-            }
+        this.setState(prevState => {
+          const updatedApi = {
+            ...prevState[api],
+            reqSent: false,
+            token: token,
+            userToken: token,
+            isLogin: false,
+            endpoint: getUrlFromEnv(prevState[api].env)
+          }
 
-            return ({
-              [api]: updatedApi
-            })
-          })
-          resolve('Success')
-        })
-        .catch(error => {
-          this.setState(prevState => {
-            const updateApiErr = {
-              ...prevState[api],
-              reqSent: false,
-              respError: error
-            }
+          // store successful login details in localstorage
+          const storedLogin = {
+            ...JSON.parse(localStorage.getItem(api)),
+            env: updatedApi.env,
+            login: updatedApi.login,
+            password: updatedApi.password
+          }
+          localStorage.setItem(api, JSON.stringify(storedLogin))
 
-            return ({
-              [api]: updateApiErr
-            })
+          return ({
+            [api]: updatedApi
           })
         })
-    })
+      })
+      .then(() => {
+        this.getCompanies(api)
+      })
+      .catch(error => {
+        this.setState(prevState => {
+          return ({
+            [api]: {
+              ...prevState[api],
+              respError: error,
+              reqSent: false
+            }
+          })
+        })
+      })
   }
 
   // Send http request to api
@@ -503,10 +571,22 @@ class App extends Component {
               time: elapsed
             }
 
+            // store successful request details in localstorage
+            const storedReq = {
+              ...JSON.parse(localStorage.getItem(api)),
+              method: updatedApi.method,
+              endpoint: updatedApi.endpoint,
+              token: updatedApi.token
+            }
+            localStorage.setItem(api, JSON.stringify(storedReq))
+
             return ({
               [api]: updatedApi
             })
           })
+
+
+
           resolve('Success')
         })
         .catch(error => {
