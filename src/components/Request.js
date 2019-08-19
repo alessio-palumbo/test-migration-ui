@@ -12,7 +12,7 @@ export async function sendReq(props) {
   const config = {
     method: props.method,
     headers: !_.isEmpty(props.headers) ? props.headers : defaultHeaders,
-    url: props.endpoint
+    url: props.baseUrl + props.endpoint
   }
 
   if (props.payloadJson) {

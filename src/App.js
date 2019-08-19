@@ -490,8 +490,7 @@ class App extends Component {
           const updatedApi = {
             ...prevState[api],
             username: user.name,
-            logins: logins,
-            baseUrl: getUrlFromEnv(env)
+            logins: logins
           }
 
           return ({
