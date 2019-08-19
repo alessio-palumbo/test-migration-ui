@@ -8,11 +8,12 @@ const defaultHeaders = {
 
 export async function sendReq(props) {
   defaultHeaders.Authorization = `Bearer ${props.token}`
+  let url = getFullUrl(props.baseUrl, props.endpoint)
 
   const config = {
     method: props.method,
     headers: !_.isEmpty(props.headers) ? props.headers : defaultHeaders,
-    url: props.baseUrl + props.endpoint
+    url: url
   }
 
   if (props.payloadJson) {
@@ -83,4 +84,8 @@ export const getUrlFromEnv = env => {
   return env === 'prod'
     ? process.env.REACT_APP_BASE_PROD
     : base.replace('ENV', env)
+}
+
+export const getFullUrl = (baseUrl, endpoint) => {
+  return baseUrl ? (baseUrl + endpoint) : endpoint
 }

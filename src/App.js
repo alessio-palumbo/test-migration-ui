@@ -8,7 +8,7 @@ import { Apis } from './components/Apis'
 import { Diff } from './components/Diff'
 import { Footer } from './components/Footer'
 import { ReqForm } from './components/ReqForm'
-import { sendReq, loginOSSUser, loginOSSCompany, getUserCompanies, getUrlFromEnv } from './components/Request'
+import { sendReq, loginOSSUser, loginOSSCompany, getUserCompanies, getUrlFromEnv, getFullUrl } from './components/Request'
 import jdd from './libs/jdd'
 
 class App extends Component {
@@ -309,7 +309,7 @@ class App extends Component {
   }
 
   buildCurl = api => {
-    let curl = `curl '${api.endpoint}'`
+    let curl = `curl '${getFullUrl(api.baseUrl, api.endpoint)}'`
     if (api.method !== '' && api.method !== 'GET' && api.method !== 'POST') {
       curl += ` -X ${api.method}`
     }
@@ -355,6 +355,7 @@ class App extends Component {
       return ({
         [api]: {
           ...prevState[api],
+          env: '',
           baseUrl: '',
           logins: {},
           loginId: '',
