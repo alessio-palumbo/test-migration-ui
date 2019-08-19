@@ -90,43 +90,54 @@ class App extends Component {
 
   fillFromParams() {
     const query = new URLSearchParams(window.location.search)
-    if (query && query.has('left') && query.has('right')) {
-      const token = query.get('token')
+    if (!query && !query.has('left') && !query.has('right')) return false
 
-      let queryString = window.location.search
-      let offset = '?left='.length
-      const [leftEndpoint, rightEndpoint] = queryString
-        .substr(offset, queryString.indexOf('&token') - offset)
-        .split('&right=')
+    const env = query.get('env')
+    const login = query.get('login')
+    const password = query.get('password')
+    const loginId = query.get('login_id')
 
-      const left = {
-        ...this.state.left,
-        label: 'V2',
-        endpoint: leftEndpoint,
-        token: token
-      }
+    let queryString = window.location.search
+    let offset = '?left='.length
+    const [leftEndpoint, rightEndpoint] = queryString
+      .substr(offset, queryString.indexOf('&env') - offset)
+      .split('&right=')
 
-      const right = {
-        ...this.state.right,
-        label: 'V3',
-        endpoint: rightEndpoint,
-        token: token
-      }
-
-      this.setState(
-        {
-          left,
-          right
-        },
-        function () {
-          Promise.all([this.onSendReq('left'), this.onSendReq('right')]).then(() => {
-            this.setState({ show: !this.state.show }, this.onCompare())
+    loginOSSUser(env, login, password)
+      .then(result => {
+        const token = result.access_token
+        this.getCompanies(api)
+          .then(() => {
           })
-        }
-      )
-      return true
-    }
-    return false
+          .then(() => {
+            if (this.state.loginId !== loginId) {
+              this.loginCompany('left', loginId)
+            }
+          })
+          .then(() => {
+            this.setState(prevState => {
+              return ({
+                left: {
+                  ...prevState.left,
+                  label: 'V2',
+                  endpoint: leftEndpoint
+                },
+                right: {
+                  ...prevState.left,
+                  label: 'V3',
+                  endpoint: rightEndpoint
+                },
+                show: !this.state.show
+              })
+            })
+          })
+          .then(() => {
+            Promise.all([this.onSendReq('left'), this.onSendReq('right')]).then(() => {
+              this.setState({ show: !this.state.show }, this.onCompare())
+            })
+          })
+    )
+    return true
   }
 
   getCachedData() {
@@ -141,23 +152,7 @@ class App extends Component {
     })
   }
 
-  // Switch token from user to companies, if any
-  onChangeLoginType = (event, api) => {
-    let [updatedId, updatedToken] = event.target.value.split('|')
-
-    if (updatedToken) {
-      return this.setState(prevState => {
-        return ({
-          [api]: {
-            ...prevState[api],
-            token: updatedToken,
-            loginId: updatedId,
-            baseUrl: getUrlFromEnv(prevState[api].logins[updatedId].env)
-          }
-        })
-      })
-    }
-
+  loginCompany = (api, updatedId) => {
     this.setState(prevState => {
       return ({
         [api]: {
@@ -167,7 +162,7 @@ class App extends Component {
       })
     })
 
-    loginOSSCompany(updatedId, this.state[api].userToken, this.state[api].env)
+    loginOSSCompany(this.state[api].env, updatedId, this.state[api].userToken)
       .then(result => {
         let token = result.access_token
         this.setState(prevState => {
@@ -194,6 +189,26 @@ class App extends Component {
           })
         })
       })
+  }
+
+  // Switch token from user to companies, if any
+  onChangeLoginType = (event, api) => {
+    let [updatedId, updatedToken] = event.target.value.split('|')
+
+    if (updatedToken) {
+      return this.setState(prevState => {
+        return ({
+          [api]: {
+            ...prevState[api],
+            token: updatedToken,
+            loginId: updatedId,
+            baseUrl: getUrlFromEnv(prevState[api].logins[updatedId].env)
+          }
+        })
+      })
+    }
+
+    this.loginCompany(api, updatedId)
   }
 
   // Change value of api method
@@ -460,8 +475,7 @@ class App extends Component {
 
   getCompanies = api => {
     // send get user with companies and set user name, then if companies populate select
-    const currentApi = this.state[api]
-    getUserCompanies(currentApi)
+    getUserCompanies(this.state[api].env, this.state[api].token)
       .then(result => {
         const user = result.user
         // Do not process logins if the user has a single one

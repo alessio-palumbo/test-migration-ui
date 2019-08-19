@@ -43,7 +43,7 @@ export async function loginOSSUser(env, login, password) {
   return response.data
 }
 
-export async function loginOSSCompany(companyId, userToken, env) {
+export async function loginOSSCompany(env, companyId, userToken) {
   const baseUrl = getUrlFromEnv(env)
 
   const config = {
@@ -63,9 +63,9 @@ export async function loginOSSCompany(companyId, userToken, env) {
   return response.data
 }
 
-export async function getUserCompanies(props) {
-  const baseUrl = getUrlFromEnv(props.env)
-  defaultHeaders.Authorization = `Bearer ${props.token}`
+export async function getUserCompanies(env, token) {
+  const baseUrl = getUrlFromEnv(env)
+  defaultHeaders.Authorization = `Bearer ${token}`
 
   const config = {
     method: 'GET',
