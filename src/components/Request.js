@@ -79,11 +79,11 @@ export async function getUserCompanies(props) {
 }
 
 export const getUrlFromEnv = env => {
-  const base = process.env.REACT_APP_BASE_URL || ''
+  if (env === 'prod') return process.env.REACT_APP_BASE_PROD
+  if (env === 'demo') return process.env.REACT_APP_BASE_DEMO
 
-  return env === 'prod'
-    ? process.env.REACT_APP_BASE_PROD
-    : base.replace('ENV', env)
+  const base = process.env.REACT_APP_BASE_URL || ''
+  return base.replace('ENV', env)
 }
 
 export const getFullUrl = (baseUrl, endpoint) => {

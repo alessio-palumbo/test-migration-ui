@@ -368,6 +368,8 @@ class App extends Component {
   // Copy curl from clipboard and update api fields
   onCopyClip = async api => {
     const curl = await navigator.clipboard.readText();
+    // Exit if clipboard does not contain a curl
+    if (curl.indexOf('curl') === -1) return
 
     this.resetLoginData(api)
 
