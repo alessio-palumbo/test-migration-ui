@@ -17,6 +17,7 @@ class App extends Component {
       id: 'left',
       label: 'API 1',
       method: 'GET',
+      headers: {},
       endpoint: '',
       token: '',
       isLogin: false,
@@ -28,7 +29,6 @@ class App extends Component {
       username: '',
       userToken: '',
       logins: {},
-      headers: {},
       payload: '',
       payloadJson: '',
       payloadError: null,
@@ -36,17 +36,17 @@ class App extends Component {
       curlCopied: false,
       jsonCopied: false,
       reqSent: false,
-      config: null,
       resp: '',
       respJson: '',
       respError: null,
-      time: '',
-      parseError: null
+      parseError: null,
+      time: ''
     },
     right: {
       id: 'right',
       label: 'API 2',
       method: 'GET',
+      headers: {},
       endpoint: '',
       token: '',
       isLogin: false,
@@ -58,7 +58,6 @@ class App extends Component {
       username: '',
       userToken: '',
       logins: {},
-      headers: {},
       payload: '',
       payloadJson: '',
       payloadError: null,
@@ -66,12 +65,11 @@ class App extends Component {
       curlCopied: false,
       jsonCopied: false,
       reqSent: false,
-      config: null,
       resp: '',
       respJson: '',
       respError: null,
-      time: '',
-      parseError: null
+      parseError: null,
+      time: ''
     },
     show: false,
     compared: false,
@@ -365,14 +363,21 @@ class App extends Component {
     })
   }
 
+  isValidCurl = curl => {
+    if (curl.indexOf('curl') !== 0) return false
+    if (curl.indexOf('http') === -1) return false
+    if (curl.toLowerCase().indexOf('authorization') === -1) return false
+
+    return true
+  }
+
   // Copy curl from clipboard and update api fields
   onCopyClip = async api => {
-    const curl = await navigator.clipboard.readText();
-    // Exit if clipboard does not contain a curl
-    if (curl.indexOf('curl') === -1) return
+    let curl = await navigator.clipboard.readText();
 
+    // Exit if clipboard does not start with 'curl'
+    if (!this.isValidCurl(curl)) return
     this.resetLoginData(api)
-
     this.setState(prevState => {
       const updatedApi = {
         ...prevState[api],
@@ -380,24 +385,27 @@ class App extends Component {
         curl: curl
       }
 
-      curl.replace(/\'/g, '').split(' -').map(line => {
-        switch (line.substr(0, 2)) {
-          case 'H ':
-            let splitHeader = line.substr(2).replace(/['"]+/g, '').split(": ")
-            if (splitHeader[0] === 'Authorization') updatedApi.token = splitHeader[1].split(' ')[1]
-            return updatedApi.headers[splitHeader[0]] = splitHeader[1]
-          case 'X ':
-            return updatedApi.method = line.substr(1).trim()
-          case 'd ':
-          case '-d':
-            updatedApi.method = updatedApi.method === 'GET' && 'POST'
-            updatedApi.payloadJson = line.substr(line.indexOf(' ') + 1)
-            updatedApi.payload = this.formatJSON(JSON.parse(line.substr(line.indexOf(' ') + 1)))
-            return
-        }
+      let httpStr = curl.substr(curl.indexOf('http') - 1).split(' ')[0]
+      curl = curl.replace(httpStr, '')
+      updatedApi.endpoint = httpStr.replace(/['"]+/g, '')
 
-        if (line.indexOf('http') !== -1) {
-          return updatedApi.endpoint = line.substr(line.indexOf('http'))
+      curl.split(' -').map(line => {
+        let [type, content] = line.trim().split(' \'')
+        if (content === undefined) [type, content] = line.split(' ')
+
+        switch (type) {
+          case 'H':
+            let splitHeader = content.replace(/['"]+/g, '').split(": ")
+            if (splitHeader[0].toLowerCase() === 'authorization') updatedApi.token = splitHeader[1].split(' ')[1]
+            return updatedApi.headers[splitHeader[0]] = splitHeader[1]
+          case 'X':
+            return updatedApi.method = content
+          case 'd':
+          case '-data-binary':
+            updatedApi.method = updatedApi.method === 'PUT' ? 'PUT' : 'POST'
+            let payload = content.substr(0, content.length - 1)
+            updatedApi.payloadJson = payload
+            updatedApi.payload = this.formatJSON(JSON.parse(payload))
         }
       })
 
