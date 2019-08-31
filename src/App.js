@@ -71,6 +71,7 @@ class App extends Component {
       parseError: null,
       time: ''
     },
+    acceptedHeaders: ['accept', 'content-type', 'authorization'],
     show: false,
     compared: false,
     diffLinesL: null,
@@ -386,7 +387,7 @@ class App extends Component {
         curl: curl
       }
 
-      let httpStr = curl.substr(curl.indexOf('http') - 1).split(' ')[0]
+      let httpStr = curl.substr(curl.indexOf("'http")).split(' ')[0]
       curl = curl.replace(httpStr, '')
       updatedApi.endpoint = httpStr.replace(/['"]+/g, '')
 
@@ -397,7 +398,16 @@ class App extends Component {
         switch (type) {
           case 'H':
             let splitHeader = content.replace(/['"]+/g, '').split(": ")
-            if (splitHeader[0].toLowerCase() === 'authorization') updatedApi.token = splitHeader[1].split(' ')[1]
+            // Handle any :header: headers and only accept method
+            if (splitHeader.length === 3) {
+              if (splitHeader[1] === 'method') updatedApi.method = splitHeader[2]
+              return
+            }
+
+            // Filter out unneeded headers
+            let header = splitHeader[0].toLowerCase()
+            if (!prevState.acceptedHeaders.includes(header)) return
+            if (header === 'authorization') updatedApi.token = splitHeader[1].split(' ')[1]
             return updatedApi.headers[splitHeader[0]] = splitHeader[1]
           case 'X':
             return updatedApi.method = content
