@@ -19,10 +19,10 @@ export function Diff({
 
   return (
     <div className="diff">
-      <button className="btn btn-sm diff-btn btn-outline-secondary" onClick={showDiffs}>
+      <button className={`btn btn-sm diff-btn ${show ? "btn-light text-secondary" : "btn-outline-secondary"}`} onClick={showDiffs}>
         Show Diffs
       </button>
-      {show === true && (
+      {show && (
         <div className="diff-box p-4">
           {compared ? (
             <div id="diffcontainer">

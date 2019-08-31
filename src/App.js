@@ -260,7 +260,8 @@ class App extends Component {
     this.setState(prevState => {
       const clearedInput = {
         ...prevState[api],
-        [field]: ''
+        [field]: '',
+        headers: {} // Reset headers in case there a curl was parsed. TODO add select header ctl
       }
 
       return ({
@@ -413,7 +414,7 @@ class App extends Component {
         [api]: updatedApi
       })
 
-    })
+    }, function () { return this.onSendReq(api) })
   }
 
   onPressEnter = e => {
@@ -538,7 +539,8 @@ class App extends Component {
             isLogin: false,
             env: env,
             baseUrl: getUrlFromEnv(env),
-            endpoint: ''
+            endpoint: '',
+            headers: {}
           }
 
           // store successful login details in localstorage
@@ -636,10 +638,10 @@ class App extends Component {
               [api]: updatedApi
             })
           })
-
-
-
           resolve('Success')
+        })
+        .then(() => {
+          this.setState({ show: true })
         })
         .catch(error => {
           this.setState(prevState => {

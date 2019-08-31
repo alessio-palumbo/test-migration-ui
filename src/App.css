@@ -14,11 +14,23 @@ ul {
 
 .title {
   color: white;
+  margin: 20px auto 35px;
 }
 
 /* Inputs */
 .input-container {
   position: relative;
+  margin: 60px 0 !important;
+}
+
+.token-container {
+  position: relative;
+  margin-bottom: 60px;
+}
+
+.token-label, .payload-parse {
+  margin: -30px auto 5px;
+  height: 25px;
 }
 
 .input-box {
@@ -28,6 +40,7 @@ ul {
 
 .baseUrl {
   background: #007787;
+  color: white;
   width: 80px;
   max-width: 80px;
   position: absolute;
@@ -37,7 +50,7 @@ ul {
 }
 
 .base {
-  padding-left: 82px !important;
+  padding-left: 85px !important;
 }
 
 .clear-btn {
@@ -69,6 +82,10 @@ ul {
 }
 
 /* #6b787e */
+.btn-cont {
+  height: 38.25px;
+}
+
 .btn-method {
   background-color: #00bbc3 !important;
   text-align-last: center;
@@ -81,7 +98,7 @@ ul {
   border: 2px solid #c4dce7 !important;
   border-radius: 15px !important;
   width: 140px !important;
-  margin: 5px;
+  margin: 0 5px;
 }
 
 /* apis */
@@ -166,12 +183,19 @@ ul {
   resize: none;
 }
 
+.payload-parse {
+  text-shadow: 0px 0px -4px #fff;
+  color: #ff0000 !important;
+}
+
 .payload {
-  font-size: 10px;
+  font-size: 16px !important;
   border: 1px solid #007787 !important;
   min-height: 150px;
   resize: none;
   overflow-y: scroll;
+  white-space: pre;
+  margin-bottom: 60px;
 }
 
 .payload-err::placeholder {

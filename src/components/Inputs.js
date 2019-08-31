@@ -20,7 +20,7 @@ export function Inputs({
   return (
     <Fragment>
       <div>
-        <div className="d-flex align-items-center justify-content-around">
+        <div className="btn-cont d-flex align-items-top justify-content-around">
           <button className="btn btn-sm btn-inputs" onClick={() => onCopyClip(api.id)}>
             Paste Curl
           </button>
@@ -69,7 +69,7 @@ export function Inputs({
                 />
                 {(api.method === 'POST' || api.method === 'PUT') && (
                   <Fragment>
-                    <div className={`text-danger ${(!api.payloadError || !api.payloadError.display) && 'invisible'}`}>Parse Error at line: {api.payloadError && api.payloadError.line}</div>
+                    <div className={`payload-parse ${(!api.payloadError || !api.payloadError.display) && 'invisible'}`}>Parse Error at line: {api.payloadError && api.payloadError.line}</div>
                     <textarea
                       spellCheck="false"
                       className={`form-control payload ${api.payloadError && 'payload-err'}`}
