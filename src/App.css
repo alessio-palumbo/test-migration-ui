@@ -53,6 +53,18 @@ ul {
   padding-left: 85px !important;
 }
 
+.basep {
+  z-index: 2;
+  pointer-events: none;
+}
+
+.baseUrl > select {
+  z-index: 1;
+  pointer-events: auto;
+  opacity: 0;
+  padding-left: 10px;
+}
+
 .clear-btn {
   position: absolute;
   right: 0;

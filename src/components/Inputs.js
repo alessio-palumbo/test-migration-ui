@@ -14,7 +14,8 @@ export function Inputs({
   onLogin,
   onPressEnter,
   onChangeLoginType,
-  onUpdatePayload
+  onUpdatePayload,
+  onChangeEndpoint
 }) {
   const { id, isLogin } = api
   return (
@@ -56,6 +57,7 @@ export function Inputs({
               <Fragment>
                 <Endpoint
                   api={api}
+                  onChangeEndpoint={onChangeEndpoint}
                   onChangeField={onChangeApiField}
                   onClearField={onClearApiField}
                   onPressEnter={onPressEnter}

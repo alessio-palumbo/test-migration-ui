@@ -29,6 +29,7 @@ class App extends Component {
       username: '',
       userToken: '',
       logins: {},
+      history: {},
       payload: '',
       payloadJson: '',
       payloadError: null,
@@ -58,6 +59,7 @@ class App extends Component {
       username: '',
       userToken: '',
       logins: {},
+      history: {},
       payload: '',
       payloadJson: '',
       payloadError: null,
@@ -512,6 +514,7 @@ class App extends Component {
           const updatedApi = {
             ...prevState[api],
             username: user.name,
+            loginId: user.id,
             logins: logins
           }
 
@@ -632,7 +635,7 @@ class App extends Component {
               resp: formattedResp,
               respJson: JSON.stringify(result),
               respError: null,
-              time: elapsed
+              time: elapsed,
             }
 
             // store successful request details in localstorage
@@ -642,6 +645,12 @@ class App extends Component {
               endpoint: updatedApi.endpoint,
               token: updatedApi.token
             }
+
+            if (updatedApi.baseUrl) {
+              updatedApi.history = this.updateHistory(updatedApi)
+              storedReq.history = updatedApi.history
+            }
+
             localStorage.setItem(api, JSON.stringify(storedReq))
 
             return ({
@@ -669,6 +678,46 @@ class App extends Component {
           })
         })
     })
+  }
+
+  updateHistory = api => {
+    let { history, loginId, env, endpoint } = api
+
+    if (!history[loginId]) {
+      history[loginId] = { [env]: [endpoint] }
+    } else if (!history[loginId][env]) {
+      history[loginId] = {
+        ...history[loginId],
+        [env]: [endpoint]
+      }
+    } else {
+      let saved = history[loginId][env]
+      let savedIdx = saved.findIndex(e => e === endpoint)
+      if (savedIdx !== -1) {
+        saved.splice(savedIdx, 1)
+      }
+      saved.unshift(endpoint)
+      if (saved.length > 10) saved = saved.slice(0, 10)
+      history[loginId][env] = saved
+    }
+
+    return history
+  }
+
+  onChangeEndpoint = (event, api) => {
+    const updatedEndpoint = event.target.value
+
+    this.setState(prevState => {
+      let updatedApi = {
+        ...prevState[api],
+        endpoint: updatedEndpoint
+      }
+
+      console.log(updatedEndpoint)
+      return {
+        [api]: updatedApi
+      }
+    }, function () { this.onSendReq(api) })
   }
 
   // Update res in textarea
@@ -815,6 +864,7 @@ class App extends Component {
             onPressEnter={this.onPressEnter}
             onChangeLoginType={this.onChangeLoginType}
             onUpdatePayload={this.onUpdatePayload}
+            onChangeEndpoint={this.onChangeEndpoint}
           />
         </div>
         <Apis
