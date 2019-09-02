@@ -681,22 +681,31 @@ class App extends Component {
   }
 
   updateHistory = api => {
-    let { history, loginId, env, endpoint } = api
+    let { history, loginId, env, method, endpoint, payloadJson } = api
+
+    let data = {
+      method: method,
+      endpoint: endpoint,
+      payload: payloadJson
+    }
 
     if (!history[loginId]) {
-      history[loginId] = { [env]: [endpoint] }
+      history[loginId] = { [env]: [data] }
     } else if (!history[loginId][env]) {
       history[loginId] = {
         ...history[loginId],
-        [env]: [endpoint]
+        [env]: [data]
       }
     } else {
       let saved = history[loginId][env]
-      let savedIdx = saved.findIndex(e => e === endpoint)
+      let savedIdx = saved.findIndex(item => {
+        return (item.endpoint === endpoint && item.method === method)
+      })
+
       if (savedIdx !== -1) {
         saved.splice(savedIdx, 1)
       }
-      saved.unshift(endpoint)
+      saved.unshift(data)
       if (saved.length > 10) saved = saved.slice(0, 10)
       history[loginId][env] = saved
     }
@@ -705,19 +714,28 @@ class App extends Component {
   }
 
   onChangeEndpoint = (event, api) => {
-    const updatedEndpoint = event.target.value
+    const updated = JSON.parse(event.target.value)
 
     this.setState(prevState => {
       let updatedApi = {
         ...prevState[api],
-        endpoint: updatedEndpoint
+        endpoint: updated.endpoint,
+        method: updated.method,
+        payloadJson: updated.payload,
+        payload: updated.payload && this.formatJSON(JSON.parse(updated.payload)),
+        resp: '',
+        respJson: '',
+        respError: null,
+        parseError: null,
+        time: ''
       }
 
-      console.log(updatedEndpoint)
       return {
         [api]: updatedApi
       }
-    }, function () { this.onSendReq(api) })
+    },
+      function () { updated.method === 'GET' && this.onSendReq(api) }
+    )
   }
 
   // Update res in textarea

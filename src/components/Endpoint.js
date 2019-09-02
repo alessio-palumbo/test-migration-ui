@@ -2,7 +2,7 @@ import React, { Fragment } from "react";
 import _ from 'lodash'
 
 export function Endpoint({ api, onChangeEndpoint, onChangeField, onClearField, onPressEnter }) {
-  const { id, baseUrl, endpoint, env, history, loginId } = api
+  const { id, baseUrl, endpoint, method, env, history, loginId } = api
 
   return (
     <div className="input-container">
@@ -10,14 +10,23 @@ export function Endpoint({ api, onChangeEndpoint, onChangeField, onClearField, o
         baseUrl && (
           <Fragment>
             <div className='btn baseUrl basep'>{env} /
-            <select className='btn baseUrl' value={endpoint}
+            <select className='btn baseUrl'
                 onChange={e => onChangeEndpoint(e, id)}
               >
                 {
                   history[loginId] && history[loginId][env] &&
                   (
-                    history[loginId][env].map((e, idx) => {
-                      return <option key={idx} value={e}>{e}</option>
+                    history[loginId][env].map((data, idx) => {
+                      let isSelected = (data.endpoint === endpoint && data.method === method)
+                      if (idx === 0 && endpoint === '') {
+                        return (
+                          <Fragment>
+                            <option selected='selected' value=""></option>
+                            <option key={idx} selected={isSelected} value={JSON.stringify(data)}>{data.endpoint}</option>
+                          </Fragment>
+                        )
+                      }
+                      return <option key={idx} selected={isSelected} value={JSON.stringify(data)}>{data.endpoint}</option>
                     })
                   )
 
