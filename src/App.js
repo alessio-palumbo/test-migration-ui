@@ -535,11 +535,32 @@ class App extends Component {
       })
   }
 
-  onSendLoginReq = api => {
-    this.onClearPreviousReq(api)
+  validateLogin = login => {
+    if (login.match(/^\+?[0-9]+/g)) {
+      console.log('match n')
+      if (login.charAt(0) === '+') {
+        console.log(login, 'fr')
+        login = login.substr(1)
+        console.log('logadfte', login)
+      }
+      return login
+    }
+    if (login.match(/^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/)) {
+      console.log('match email')
+      return login
+    }
 
-    const env = this.state[api].env || process.env.REACT_APP_DEFAULT_ENV
-    loginOSSUser(env, this.state[api].login, this.state[api].password)
+    return false
+  }
+
+  onSendLoginReq = api => {
+    let { login, env, password } = this.state[api]
+    login = this.validateLogin(login)
+    if (!login) return
+
+    this.onClearPreviousReq(api)
+    env = env || process.env.REACT_APP_DEFAULT_ENV
+    loginOSSUser(env, login, password)
       .then(result => {
         const token = result.access_token
 
