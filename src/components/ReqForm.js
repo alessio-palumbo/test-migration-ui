@@ -40,6 +40,7 @@ export function ReqForm({
           onPressEnter={onPressEnter}
           onChangeLoginType={onChangeLoginType}
           onUpdatePayload={onUpdatePayload}
+          onChangeEndpoint={onChangeEndpoint}
         />
       </div>
     </Fragment>

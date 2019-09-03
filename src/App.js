@@ -537,16 +537,12 @@ class App extends Component {
 
   validateLogin = login => {
     if (login.match(/^\+?[0-9]+/g)) {
-      console.log('match n')
       if (login.charAt(0) === '+') {
-        console.log(login, 'fr')
         login = login.substr(1)
-        console.log('logadfte', login)
       }
       return login
     }
     if (login.match(/^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/)) {
-      console.log('match email')
       return login
     }
 
@@ -736,6 +732,7 @@ class App extends Component {
 
   onChangeEndpoint = (event, api) => {
     const updated = JSON.parse(event.target.value)
+    if (!updated) return
 
     this.setState(prevState => {
       let updatedApi = {
