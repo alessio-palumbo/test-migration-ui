@@ -18,15 +18,16 @@ export function Endpoint({ api, onChangeEndpoint, onChangeField, onClearField, o
                   (
                     history[loginId][env].map((data, idx) => {
                       let isSelected = (data.endpoint === endpoint && data.method === method)
+                      let ref = `${data.method} ${data.endpoint}`
                       if (idx === 0 && endpoint === '') {
                         return (
                           <Fragment>
                             <option selected='selected' value=""></option>
-                            <option key={idx} selected={isSelected} value={JSON.stringify(data)}>{data.endpoint}</option>
+                            <option key={idx} selected={isSelected} value={JSON.stringify(data)}>{ref}</option>
                           </Fragment>
                         )
                       }
-                      return <option key={idx} selected={isSelected} value={JSON.stringify(data)}>{data.endpoint}</option>
+                      return <option key={idx} selected={isSelected} value={JSON.stringify(data)}>{ref}</option>
                     })
                   )
 
