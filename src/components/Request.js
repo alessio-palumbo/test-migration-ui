@@ -24,8 +24,7 @@ export async function sendReq(props) {
   return response.data
 }
 
-export async function loginOSSUser(env, login, password) {
-  const baseUrl = getUrlFromEnv(env)
+export async function loginOSSUser(baseUrl, login, password) {
 
   const config = {
     method: 'POST',
@@ -44,8 +43,7 @@ export async function loginOSSUser(env, login, password) {
   return response.data
 }
 
-export async function loginOSSCompany(companyId, userToken, env) {
-  const baseUrl = getUrlFromEnv(env)
+export async function loginOSSCompany(companyId, userToken, baseUrl) {
 
   const config = {
     method: 'POST',
@@ -65,17 +63,11 @@ export async function loginOSSCompany(companyId, userToken, env) {
 }
 
 export async function getUserCompanies(props) {
-  const baseUrl = getUrlFromEnv(props.env)
-  defaultHeaders.Authorization = `Bearer ${props.token}`
-
-  const config = {
-    method: 'GET',
-    headers: defaultHeaders,
-    url: baseUrl + process.env.REACT_APP_USER_COMPANIES,
-  }
-
-  const response = await axios(config)
-  return response.data
+  return sendReq({
+    ...props,
+    'method': 'GET',
+    'endpoint': process.env.REACT_APP_USER_COMPANIES
+  })
 }
 
 export const getUrlFromEnv = env => {

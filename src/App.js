@@ -152,8 +152,7 @@ class App extends Component {
           [api]: {
             ...prevState[api],
             token: updatedToken,
-            loginId: updatedId,
-            baseUrl: getUrlFromEnv(prevState[api].logins[updatedId].env)
+            loginId: updatedId
           }
         })
       })
@@ -168,15 +167,15 @@ class App extends Component {
       })
     })
 
-    loginOSSCompany(updatedId, this.state[api].userToken, this.state[api].env)
+    let baseUrl = this.state[api].baseUrl
+    loginOSSCompany(updatedId, this.state[api].userToken, baseUrl)
       .then(result => {
         let token = result.access_token
         this.setState(prevState => {
           const updatedApi = {
             ...prevState[api],
             token: token,
-            loginId: updatedId,
-            baseUrl: getUrlFromEnv(prevState[api].logins[updatedId].env)
+            loginId: updatedId
           }
           updatedApi.logins[updatedId].token = token
 
@@ -482,10 +481,9 @@ class App extends Component {
     })
   }
 
-  getCompanies = api => {
+  getCompanies = (api, props) => {
     // send get user with companies and set user name, then if companies populate select
-    const currentApi = this.state[api]
-    getUserCompanies(currentApi)
+    getUserCompanies(props)
       .then(result => {
         const user = result.user
         // Do not process logins if the user has a single one
@@ -550,13 +548,14 @@ class App extends Component {
   }
 
   onSendLoginReq = api => {
-    let { login, env, password } = this.state[api]
+    let { login, env, baseUrl, password } = this.state[api]
     login = this.validateLogin(login)
     if (!login) return
 
     this.onClearPreviousReq(api)
     env = env || process.env.REACT_APP_DEFAULT_ENV
-    loginOSSUser(env, login, password)
+    baseUrl = getUrlFromEnv(env)
+    loginOSSUser(baseUrl, login, password)
       .then(result => {
         const token = result.access_token
 
@@ -568,7 +567,7 @@ class App extends Component {
             userToken: token,
             isLogin: false,
             env: env,
-            baseUrl: getUrlFromEnv(env),
+            baseUrl: baseUrl,
             endpoint: '',
             headers: {}
           }
@@ -586,9 +585,11 @@ class App extends Component {
             [api]: updatedApi
           })
         })
+
+        return token
       })
-      .then(() => {
-        this.getCompanies(api)
+      .then((token) => {
+        this.getCompanies(api, { token, baseUrl })
       })
       .catch(error => {
         this.setState(prevState => {
