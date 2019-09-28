@@ -1,7 +1,14 @@
 import React from 'react'
 import { Gutter } from './Gutter'
+import jdd from '../libs/jdd'
+import jsonlint from 'jsonlint-mod'
+import _ from 'lodash'
 
 export function TextAreas({ leftApi, rightApi, onUpdateRes }) {
+
+  let leftErrResp = formatErrResp(_.get(leftApi, "respError.response.data"))
+  let rightErrResp = formatErrResp(_.get(rightApi, "respError.response.data"))
+
   return (
     <div className="taFCont d-flex justify-content-around">
       <div className="taCont left d-flex justify-content-around form-group">
@@ -12,8 +19,8 @@ export function TextAreas({ leftApi, rightApi, onUpdateRes }) {
           onChange={onUpdateRes}
           id="textarealeft"
           name="left"
-          placeholder={leftApi.respError || "Enter JSON to compare"}
-          value={leftApi.respError || leftApi.resp}
+          placeholder={leftApi.parseError || "Enter JSON to compare"}
+          value={leftErrResp || leftApi.resp}
         />
       </div>
       <div className="taCont right d-flex justify-content-around form-group">
@@ -25,9 +32,21 @@ export function TextAreas({ leftApi, rightApi, onUpdateRes }) {
           id="textarearight"
           name="right"
           placeholder={rightApi.parseError || "Enter JSON to compare"}
-          value={rightApi.respError || rightApi.resp}
+          value={rightErrResp || rightApi.resp}
         />
       </div>
     </div>
   )
+}
+
+const formatErrResp = errorData => {
+  if (_.isObject(errorData)) {
+    try {
+      let validJSON = jsonlint.parse(JSON.stringify(errorData))
+      errorData = jdd.formatJSON(validJSON)
+    } catch (e) {
+      console.log(e)
+    }
+  }
+  return errorData
 }

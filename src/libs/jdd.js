@@ -525,6 +525,15 @@ const jdd = {
       line: 1
     };
   },
+
+  // Format a valid json object into a prettified string
+  formatJSON: function (json) {
+    const config = jdd.createConfig()
+    jdd.formatAndDecorate(config, json)
+
+    return config.out.trim();
+  },
+
 };
 
 export default jdd

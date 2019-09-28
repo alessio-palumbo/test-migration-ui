@@ -331,14 +331,6 @@ class App extends Component {
     this.updateBtnMessage(id, 'curlCopied')
   }
 
-  // Format a valid json object into a prettified string
-  formatJSON = json => {
-    const config = jdd.createConfig()
-    jdd.formatAndDecorate(config, json)
-
-    return config.out.trim()
-  }
-
   // OnLogin allow the user to login and retrieve the token from the response
   onLogin = api => {
     this.setState(prevState => {
@@ -417,7 +409,7 @@ class App extends Component {
             updatedApi.method = updatedApi.method === 'PUT' ? 'PUT' : 'POST'
             let payload = content.substr(0, content.length - 1)
             updatedApi.payloadJson = payload
-            updatedApi.payload = this.formatJSON(JSON.parse(payload))
+            updatedApi.payload = jdd.formatJSON(JSON.parse(payload))
         }
       })
 
@@ -446,7 +438,7 @@ class App extends Component {
     this.setState(prevState => {
       const updatedApi = {
         ...prevState[api],
-        payload: parsed ? this.formatJSON(parsed) : input,
+        payload: parsed ? jdd.formatJSON(parsed) : input,
         payloadJson: parsed && JSON.stringify(parsed),
         payloadError: error
       }
@@ -645,7 +637,7 @@ class App extends Component {
           let elapsed = new Date() - startTimer
 
           // create formatted response to be displayed in textareas
-          const formattedResp = this.formatJSON(result)
+          const formattedResp = jdd.formatJSON(result)
           this.setState(prevState => {
             const updatedApi = {
               ...prevState[api],
@@ -741,7 +733,7 @@ class App extends Component {
         endpoint: updated.endpoint,
         method: updated.method,
         payloadJson: updated.payload,
-        payload: updated.payload && this.formatJSON(JSON.parse(updated.payload)),
+        payload: updated.payload && jdd.formatJSON(JSON.parse(updated.payload)),
         resp: '',
         respJson: '',
         respError: null,
@@ -766,7 +758,7 @@ class App extends Component {
     this.setState(prevState => {
       const updatedApi = {
         ...prevState[api],
-        resp: parsed ? this.formatJSON(parsed) : input,
+        resp: parsed ? jdd.formatJSON(parsed) : input,
         respJson: JSON.stringify(parsed),
         parseError: error
       }
