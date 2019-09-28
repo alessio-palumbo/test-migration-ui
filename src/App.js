@@ -317,7 +317,7 @@ class App extends Component {
     curl += ` -H 'Accept: application/json' -H 'Content-Type: application/json;charset=UTF-8' -H 'Authorization: Bearer ${api.token}'`
 
     if (api.payloadJson !== '') {
-      curl += ` -d ${api.payloadJson}`
+      curl += ` -d '${api.payloadJson}'`
     }
     return curl
   }
@@ -372,7 +372,10 @@ class App extends Component {
 
     // Exit if clipboard does not start with 'curl'
     if (!this.isValidCurl(curl)) return
+
     this.resetLoginData(api)
+    this.onClearPreviousReq(api, false)
+
     this.setState(prevState => {
       const updatedApi = {
         ...prevState[api],
@@ -417,7 +420,9 @@ class App extends Component {
         [api]: updatedApi
       })
 
-    }, function () { return this.onSendReq(api) })
+    }, function () {
+      if (this.state[api].method === 'GET') return this.onSendReq(api)
+    })
   }
 
   onPressEnter = e => {
@@ -455,20 +460,18 @@ class App extends Component {
     this.updateBtnMessage(api, 'jsonCopied')
   }
 
-  onClearPreviousReq = api => {
+  onClearPreviousReq = (api, sending = true) => {
     return this.setState(prevState => {
-      const sending = {
-        ...prevState[api],
-        reqSent: true,
-        resp: '',
-        respJson: '',
-        respError: null,
-        parseError: null,
-        time: ''
-      }
-
       return ({
-        [api]: sending
+        [api]: {
+          ...prevState[api],
+          reqSent: sending,
+          resp: '',
+          respJson: '',
+          respError: null,
+          parseError: null,
+          time: ''
+        }
       })
     })
   }
