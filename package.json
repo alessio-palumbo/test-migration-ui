@@ -6,7 +6,7 @@
     "axios": "0.19.0",
     "eslint-utils": "^1.4.1",
     "jsonlint-mod": "^1.7.4",
-    "lodash": "^4.17.14",
+    "lodash": "^4.17.19",
     "react": "^16.8.6",
     "react-dom": "^16.8.6",
     "react-scripts": "3.0.1"
